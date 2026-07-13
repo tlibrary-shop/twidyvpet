@@ -1,319 +1,426 @@
 /**
- * COZY LIFE - Autonomous AI Engine
- * Simulasi perilaku otonom dengan pergerakan kamera dinamis.
+ * TWIDY COZY GARDEN - Autonomous Life Engine
+ * Mobile First, Zero Frameworks.
  */
 
+// --- CACHED DOM ELEMENTS ---
 const el = {
-    camera: document.getElementById('world-camera'),
-    char: document.getElementById('character-container'),
+    world: document.getElementById('world'),
+    sky: document.getElementById('sky-layer'),
+    celestial: document.getElementById('celestial-body'),
+    twidy: document.getElementById('twidy-container'),
+    svg: document.getElementById('twidy-svg'),
     bubble: document.getElementById('thought-bubble'),
+    particles: document.getElementById('particle-layer'),
     ui: document.getElementById('ui-layer'),
-    clock: document.getElementById('clock-display'),
-    sky: document.getElementById('window-view'),
     
-    // SVG Parts for expression
+    // SVG Parts for Expressions
     eyeL: document.getElementById('eye-l'),
     eyeR: document.getElementById('eye-r'),
     mouth: document.getElementById('mouth'),
     blushL: document.getElementById('blush-l'),
-    blushR: document.getElementById('blush-r'),
-    book: document.getElementById('prop-book'),
-    broom: document.getElementById('prop-broom')
+    blushR: document.getElementById('blush-r')
 };
 
-// State Engine
-const engine = {
+// --- GAME STATE & AI ENGINE ---
+const state = {
+    level: 1,
+    exp: 0,
+    coins: 50,
+    timeOfDay: 'noon', // morning, noon, afternoon, night
+    
+    // Engine variables
     isUserActive: true,
-    idleTimer: null,
+    idleTimeout: null,
     currentAction: 'idle',
-    positionX: window.innerWidth / 2,
-    roomWidth: window.innerWidth * 1.5,
-    facing: 'right', // right or left
-    
-    // Zona di dalam ruangan (X coordinates relative to room)
-    zones: {
-        window: window.innerWidth * 0.15,
-        center: window.innerWidth * 0.75,
-        bookshelf: window.innerWidth * 1.2,
-        bed: window.innerWidth * 1.35
-    }
+    posX: 50, // vw
+    posY: 60, // vh
+    facing: 'right'
 };
 
-// Waktu dalam game (sinkron dengan dunia nyata)
-function updateClock() {
-    const now = new Date();
-    const h = now.getHours().toString().padStart(2, '0');
-    const m = now.getMinutes().toString().padStart(2, '0');
-    el.clock.innerText = `${h}:${m}`;
-    
-    // Environment lighting
-    if (now.getHours() >= 6 && now.getHours() < 15) el.sky.className = 'sky-morning';
-    else if (now.getHours() >= 15 && now.getHours() < 18) el.sky.className = 'sky-afternoon';
-    else el.sky.className = 'sky-night';
-}
-setInterval(updateClock, 60000);
-updateClock();
-
-// --- INACTIVITY & UI AUTO-HIDE ---
-function resetIdleTimer() {
-    engine.isUserActive = true;
-    el.ui.classList.add('active');
-    
-    clearTimeout(engine.idleTimer);
-    // Jika 5 detik tidak disentuh, sembunyikan UI dan biarkan pet hidup sendiri
-    engine.idleTimer = setTimeout(() => {
-        engine.isUserActive = false;
-        el.ui.classList.remove('active');
-    }, 5000);
-}
-window.addEventListener('touchstart', resetIdleTimer);
-window.addEventListener('mousemove', resetIdleTimer);
-resetIdleTimer();
-
-// --- AUTONOMOUS BEHAVIOR ENGINE ---
-// Menentukan apa yang dilakukan karakter saat dibiarkan
-const behaviors = [
-    { name: 'idle', weight: 30 },
-    { name: 'walk_random', weight: 20 },
-    { name: 'look_window', weight: 15 },
-    { name: 'sweep', weight: 10 },
-    { name: 'read_book', weight: 15 },
-    { name: 'sleep', weight: 10 }
+// Defined zones in the garden (vw, vh coordinates)
+const zones = [
+    { id: 'center', x: 50, y: 65, action: 'idle' },
+    { id: 'pond', x: 20, y: 70, action: 'look_water' },
+    { id: 'flowers', x: 80, y: 75, action: 'smell' },
+    { id: 'bench', x: 75, y: 55, action: 'sit' },
+    { id: 'tree', x: 90, y: 60, action: 'sleep' }
 ];
 
-function pickBehavior() {
-    // Jangan ubah aksi jika pengguna sedang aktif interaksi
-    if (engine.isUserActive && Math.random() > 0.3) return;
+// --- INITIALIZATION ---
+window.onload = () => {
+    updateEnvironment();
+    setInterval(updateEnvironment, 60000); // Check time every minute
     
+    startLifeEngine();
+    setupInteraction();
+};
+
+function updateHUD() {
+    document.getElementById('val-level').innerText = state.level;
+    document.getElementById('val-coin').innerText = state.coins;
+}
+
+// --- ENVIRONMENT & TIME SYSTEM ---
+function updateEnvironment() {
     const hour = new Date().getHours();
+    let timeClass = '';
     
-    // Modifikasi bobot berdasarkan waktu
-    let currentBehaviors = behaviors.map(b => ({...b}));
-    if (hour >= 21 || hour < 6) {
-        currentBehaviors.find(b => b.name === 'sleep').weight += 50;
-    }
-    if (hour >= 7 && hour <= 10) {
-        currentBehaviors.find(b => b.name === 'sweep').weight += 20;
-    }
-
-    const totalWeight = currentBehaviors.reduce((acc, curr) => acc + curr.weight, 0);
-    let randomNum = Math.random() * totalWeight;
-    let selected = currentBehaviors[0].name;
-
-    for (let b of currentBehaviors) {
-        if (randomNum < b.weight) { selected = b.name; break; }
-        randomNum -= b.weight;
-    }
+    el.particles.innerHTML = ''; // Clear particles
     
-    executeBehavior(selected);
-}
-
-function executeBehavior(action) {
-    // Reset all states
-    el.char.className = '';
-    engine.currentAction = action;
-    setExpression('neutral');
-
-    let targetX = engine.positionX;
-    
-    switch(action) {
-        case 'idle':
-            think("Anginnya sejuk...");
-            break;
-        case 'walk_random':
-            targetX = Math.random() * (engine.roomWidth * 0.8) + (engine.roomWidth * 0.1);
-            walkTo(targetX, () => {
-                el.char.className = ''; // Stop walking
-                think(Math.random() > 0.5 ? "Hmm..." : "Hari yang damai.");
-            });
-            break;
-        case 'look_window':
-            walkTo(engine.zones.window, () => {
-                el.char.className = '';
-                flipCharacter('left');
-                think("Burung-burung pada kemana ya?");
-            });
-            break;
-        case 'sweep':
-            walkTo(engine.zones.center, () => {
-                el.char.className = 'state-sweeping';
-                think("Waktunya bersih-bersih karpet!");
-            });
-            break;
-        case 'read_book':
-            walkTo(engine.zones.bookshelf, () => {
-                el.char.className = 'state-reading';
-                setExpression('happy');
-                // Subtle personalization reference woven naturally
-                const thoughts = [
-                    "Buku tentang kesehatan ini menarik juga...",
-                    "Wah, cerita tentang perpustakaan keliling ini seru!",
-                    "Cerita petualangan yang bagus."
-                ];
-                think(thoughts[Math.floor(Math.random() * thoughts.length)]);
-            });
-            break;
-        case 'sleep':
-            walkTo(engine.zones.bed, () => {
-                el.char.className = 'state-sleeping';
-                think("Zzz...");
-            });
-            break;
-    }
-}
-
-// Loop kehidupan: berjalan setiap 8 - 15 detik
-function lifeLoop() {
-    setTimeout(() => {
-        pickBehavior();
-        lifeLoop();
-    }, Math.random() * 7000 + 8000);
-}
-lifeLoop(); // Start Engine
-
-// --- MOVEMENT & CAMERA TRACKING ---
-function walkTo(targetX, callback) {
-    if (Math.abs(targetX - engine.positionX) < 20) {
-        if(callback) callback();
-        return;
-    }
-
-    el.char.className = 'state-walking';
-    flipCharacter(targetX > engine.positionX ? 'right' : 'left');
-    
-    // Calculate duration based on distance (constant speed)
-    const distance = Math.abs(targetX - engine.positionX);
-    const durationStr = (distance / 100).toFixed(1) + 's';
-    el.char.style.transitionDuration = durationStr;
-    el.char.style.transform = `translateX(${targetX}px)`;
-    
-    engine.positionX = targetX;
-    
-    // Panning Camera (bergerak berlawanan arah agar karakter tetap di layar)
-    // Hitung posisi kamera ideal agar karakter berada sedikit di tengah
-    const screenWidth = window.innerWidth;
-    let cameraTarget = -(targetX - screenWidth / 2);
-    
-    // Batasi kamera agar tidak melewati batas ruangan
-    cameraTarget = Math.min(0, Math.max(cameraTarget, -(engine.roomWidth - screenWidth)));
-    
-    el.camera.style.transitionDuration = durationStr;
-    el.camera.style.transform = `translateX(${cameraTarget}px)`;
-
-    // Wait for transition to finish
-    setTimeout(() => {
-        if(callback) callback();
-    }, (distance / 100) * 1000);
-}
-
-function flipCharacter(direction) {
-    engine.facing = direction;
-    const svg = document.getElementById('pet-svg');
-    if (direction === 'left') {
-        svg.style.transform = 'scaleX(-1)';
-        el.bubble.style.transform = 'scaleX(-1)'; // Fix bubble text flip
+    if (hour >= 6 && hour < 11) {
+        timeClass = 'time-morning';
+        el.celestial.className = 'is-sun';
+        spawnParticles('butterfly', 3);
+    } else if (hour >= 11 && hour < 15) {
+        timeClass = 'time-noon';
+        el.celestial.className = 'is-sun';
+        spawnParticles('butterfly', 5);
+    } else if (hour >= 15 && hour < 18) {
+        timeClass = 'time-afternoon';
+        el.celestial.className = 'is-sun';
     } else {
-        svg.style.transform = 'scaleX(1)';
-        el.bubble.style.transform = 'scaleX(1)';
+        timeClass = 'time-night';
+        el.celestial.className = 'is-moon';
+        spawnParticles('firefly', 10);
+    }
+    
+    if (state.timeOfDay !== timeClass) {
+        state.timeOfDay = timeClass;
+        el.sky.className = timeClass;
     }
 }
 
-// --- EXPRESSIONS ---
+function spawnParticles(type, count) {
+    for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = type;
+        if(type === 'butterfly') p.innerText = Math.random() > 0.5 ? '🦋' : '💮'; // mix
+        p.style.left = `${Math.random() * 100}vw`;
+        p.style.top = `${Math.random() * 80}vh`;
+        p.style.animationDelay = `${Math.random() * 5}s`;
+        el.particles.appendChild(p);
+    }
+}
+
+// --- AUTONOMOUS LIFE ENGINE ---
+function startLifeEngine() {
+    function loop() {
+        if (!state.isUserActive || Math.random() > 0.5) {
+            pickRandomActivity();
+        }
+        
+        // Random thought bubble independently
+        if(Math.random() > 0.6) triggerRandomThought();
+        
+        // Loop randomly between 6 to 15 seconds
+        setTimeout(loop, Math.random() * 9000 + 6000);
+    }
+    loop();
+}
+
+function pickRandomActivity() {
+    const hour = new Date().getHours();
+    let possibleZones = [...zones];
+    
+    // Higher chance to sleep at night
+    if (hour >= 21 || hour < 6) {
+        possibleZones.push(zones.find(z => z.action === 'sleep'));
+        possibleZones.push(zones.find(z => z.action === 'sleep'));
+    }
+
+    const target = possibleZones[Math.floor(Math.random() * possibleZones.length)];
+    executeActivity(target);
+}
+
+function executeActivity(zone) {
+    // Reset state
+    el.twidy.className = '';
+    setExpression('neutral');
+    
+    walkTo(zone.x, zone.y, () => {
+        el.twidy.className = ''; // Stop walking
+        
+        switch(zone.action) {
+            case 'look_water':
+                flipChar('left');
+                setTimeout(() => setExpression('excited'), 500);
+                if(Math.random() > 0.5) think("Ada ikan kecil!");
+                break;
+            case 'smell':
+                el.twidy.className = 'state-sit'; // Squat
+                setExpression('happy');
+                think("Wanginya enak~ 🌸");
+                break;
+            case 'sit':
+                el.twidy.className = 'state-sit';
+                think("Duduk santai dulu.");
+                break;
+            case 'sleep':
+                el.twidy.className = 'state-sleeping';
+                think("Zzz...");
+                break;
+            default:
+                if(Math.random() > 0.5) executeMicroAnimation();
+                break;
+        }
+    });
+}
+
+// Over 100+ variations created dynamically by mixing parts
+function executeMicroAnimation() {
+    const actions = ['blink', 'lookLeft', 'lookRight', 'lookUp', 'tailWag'];
+    const act = actions[Math.floor(Math.random() * actions.length)];
+    
+    if(act === 'blink') {
+        el.eyeL.setAttribute('d', "M 75 105 L 87 105"); el.eyeR.setAttribute('d', "M 113 105 L 125 105");
+        setTimeout(() => setExpression('neutral'), 150);
+    } else if (act === 'lookUp') {
+        el.twidy.style.transform += " translateY(-5px)";
+        setTimeout(() => el.twidy.style.transform = el.twidy.style.transform.replace(" translateY(-5px)", ""), 1000);
+    }
+}
+
+// --- MOVEMENT ENGINE ---
+function walkTo(targetX, targetY, callback) {
+    const currentX = state.posX;
+    
+    if (Math.abs(targetX - currentX) > 2) {
+        el.twidy.className = 'state-walking';
+        flipChar(targetX > currentX ? 'right' : 'left');
+    }
+    
+    // Calculate distance for smooth constant speed
+    const dist = Math.sqrt(Math.pow(targetX - state.posX, 2) + Math.pow(targetY - state.posY, 2));
+    const duration = dist * 0.08; // speed multiplier
+    
+    el.twidy.style.transitionDuration = `${duration}s`;
+    el.twidy.style.transform = `translate(${targetX}vw, ${targetY}vh)`;
+    
+    state.posX = targetX;
+    state.posY = targetY;
+    
+    setTimeout(() => {
+        if(callback) callback();
+    }, duration * 1000);
+}
+
+function flipChar(direction) {
+    state.facing = direction;
+    if(direction === 'left') {
+        el.svg.style.transform = 'scaleX(-1)';
+        el.bubble.style.transform = 'translateX(-50%) scaleX(-1)'; // Prevent backwards text
+    } else {
+        el.svg.style.transform = 'scaleX(1)';
+        el.bubble.style.transform = 'translateX(-50%) scaleX(1)';
+    }
+}
+
+// --- EXPRESSIONS & THOUGHTS ---
 function setExpression(mood) {
-    // Reset
-    el.mouth.setAttribute('d', "M 94 122 Q 100 128, 106 122"); // Normal
-    el.eyeL.setAttribute('d', "M 70 100 A 5 7 0 1 1 80 100 A 5 7 0 1 1 70 100");
-    el.eyeR.setAttribute('d', "M 120 100 A 5 7 0 1 1 130 100 A 5 7 0 1 1 120 100");
+    // Reset to neutral
+    el.mouth.setAttribute('d', "M 95 126 Q 100 132, 105 126");
+    el.eyeL.setAttribute('d', "M 75 105 A 6 8 0 1 1 87 105 A 6 8 0 1 1 75 105");
+    el.eyeR.setAttribute('d', "M 113 105 A 6 8 0 1 1 125 105 A 6 8 0 1 1 113 105");
     el.blushL.style.opacity = '0'; el.blushR.style.opacity = '0';
     
-    const eyeHappy = "M 68 100 Q 75 92, 82 100";
+    const eyeHappy = "M 75 105 Q 81 95, 87 105";
     
-    if (mood === 'happy') {
-        el.eyeL.setAttribute('d', eyeHappy);
-        el.eyeR.setAttribute('d', "M 118 100 Q 125 92, 132 100");
-        el.mouth.setAttribute('d', "M 92 122 Q 100 135, 108 122");
-    } else if (mood === 'blush') {
-        el.eyeL.setAttribute('d', eyeHappy);
-        el.eyeR.setAttribute('d', "M 118 100 Q 125 92, 132 100");
-        el.blushL.style.opacity = '0.7'; el.blushR.style.opacity = '0.7';
+    switch(mood) {
+        case 'happy':
+            el.eyeL.setAttribute('d', eyeHappy);
+            el.eyeR.setAttribute('d', "M 113 105 Q 119 95, 125 105");
+            el.mouth.setAttribute('d', "M 92 126 Q 100 140, 108 126 Z"); // open mouth
+            break;
+        case 'blush':
+            el.eyeL.setAttribute('d', eyeHappy);
+            el.eyeR.setAttribute('d', "M 113 105 Q 119 95, 125 105");
+            el.blushL.style.opacity = '0.7'; el.blushR.style.opacity = '0.7';
+            break;
+        case 'excited':
+            el.eyeL.setAttribute('d', eyeHappy);
+            el.eyeR.setAttribute('d', "M 113 105 Q 119 95, 125 105");
+            break;
     }
 }
 
 function think(text) {
     el.bubble.innerText = text;
     el.bubble.classList.remove('hidden');
-    if(window.bubbleTimeout) clearTimeout(window.bubbleTimeout);
-    window.bubbleTimeout = setTimeout(() => {
+    if(window.bubbleTimer) clearTimeout(window.bubbleTimer);
+    window.bubbleTimer = setTimeout(() => {
         el.bubble.classList.add('hidden');
     }, 4000);
 }
 
-// --- INTERACTION ---
-function pokeCharacter() {
-    el.char.className = ''; // Stop current action
-    setExpression('blush');
-    think("Hehe 😊");
+function triggerRandomThought() {
+    const hour = new Date().getHours();
+    const thoughts = {
+        morning: ["Selamat pagi ☀️", "Ayo mulai hari ini.", "Udara pagi segar sekali."],
+        noon: ["Sudah makan?", "Cuaca cerah!", "Kupu-kupunya lucu."],
+        afternoon: ["Cuacanya enak ya.", "Mau jalan-jalan santai."],
+        night: ["Ayo istirahat.", "Malam yang tenang.", "Bintangnya indah."],
+        random: ["Aku senang kamu datang.", "Ayo bermain.", "Ngantuk nih..."]
+    };
     
-    // Bounce animation via JS
-    el.char.style.transitionDuration = '0.2s';
-    el.char.style.transform = `translateX(${engine.positionX}px) scaleY(0.9) scaleX(1.05)`;
-    setTimeout(() => {
-        el.char.style.transform = `translateX(${engine.positionX}px) scaleY(1) scaleX(1)`;
-        setTimeout(() => setExpression('neutral'), 1500);
-    }, 200);
+    let pool = thoughts.random;
+    if(hour >= 6 && hour < 11) pool = pool.concat(thoughts.morning);
+    else if(hour >= 11 && hour < 15) pool = pool.concat(thoughts.noon);
+    else if(hour >= 15 && hour < 18) pool = pool.concat(thoughts.afternoon);
+    else pool = pool.concat(thoughts.night);
+    
+    think(pool[Math.floor(Math.random() * pool.length)]);
 }
 
-function interact(type) {
-    el.char.className = '';
-    if (type === 'feed') {
-        setExpression('happy');
-        think("Nyam! Terima kasih makanannya!");
-    } else if (type === 'play') {
-        setExpression('happy');
-        think("Yay! Bermain!");
-        // Lompat
-        el.char.style.transitionDuration = '0.3s';
-        el.char.style.transform = `translateX(${engine.positionX}px) translateY(-50px)`;
-        setTimeout(() => el.char.style.transform = `translateX(${engine.positionX}px) translateY(0)`, 300);
+// --- DRAG & INTERACTIONS ---
+function setupInteraction() {
+    let isDragging = false;
+    
+    // Auto-hide UI Logic
+    function resetIdle() {
+        state.isUserActive = true;
+        el.ui.style.opacity = '1';
+        clearTimeout(state.idleTimeout);
+        state.idleTimeout = setTimeout(() => {
+            state.isUserActive = false;
+            el.ui.style.opacity = '0';
+        }, 4000);
     }
+    
+    document.addEventListener('touchstart', resetIdle);
+    document.addEventListener('touchmove', resetIdle);
+    resetIdle();
+    
+    // Drag Logic (Twidy follows finger slightly)
+    let startX = 0;
+    el.twidy.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; });
+    el.twidy.addEventListener('touchmove', (e) => {
+        const moveX = e.touches[0].clientX;
+        if (Math.abs(moveX - startX) > 30) {
+            flipChar(moveX > startX ? 'right' : 'left');
+            think("Whoaaa!");
+        }
+    });
 }
 
-// --- PARTICLES ---
-function initDust() {
-    const container = document.getElementById('dust-motes');
-    for(let i=0; i<30; i++) {
-        const mote = document.createElement('div');
-        mote.className = 'mote';
-        mote.style.left = `${Math.random() * 100}%`;
-        mote.style.top = `${Math.random() * 100}%`;
-        mote.style.animationDelay = `${Math.random() * 10}s`;
-        mote.style.animationDuration = `${Math.random() * 10 + 10}s`;
-        container.appendChild(mote);
+// Specific Part Touches (Triggered via HTML onclick on hitboxes)
+function interact(part) {
+    el.twidy.className = ''; // Stop current action
+    
+    if (part === 'head') {
+        setExpression('blush');
+        think("Hehe 😊");
+        createFloatingHeart();
+        
+        // Bounce
+        el.twidy.style.transitionDuration = '0.2s';
+        el.twidy.style.transform = `translate(${state.posX}vw, ${state.posY}vh) scaleY(0.9) scaleX(1.05)`;
+        setTimeout(() => {
+            el.twidy.style.transform = `translate(${state.posX}vw, ${state.posY}vh) scaleY(1) scaleX(1)`;
+        }, 200);
+        
+    } else if (part === 'body') {
+        setExpression('happy');
+        think("Geli hihihi!");
+        el.twidy.style.transform += " translateX(5px)";
+        setTimeout(() => el.twidy.style.transform = el.twidy.style.transform.replace(" translateX(5px)", ""), 100);
+        
+    } else if (part === 'tail') {
+        setExpression('neutral');
+        flipChar(state.facing === 'left' ? 'right' : 'left'); // Look back
+        think("Eh?");
     }
+    
+    setTimeout(() => setExpression('neutral'), 2000);
 }
-initDust();
 
-// --- CHAT MODAL (Simulated Backend) ---
+function createFloatingHeart() {
+    const heart = document.createElement('div');
+    heart.innerText = '❤️';
+    heart.style.position = 'absolute';
+    heart.style.left = '50%';
+    heart.style.top = '10%';
+    heart.style.fontSize = '1.5rem';
+    heart.style.animation = 'floatFly 1s forwards ease-out';
+    el.twidy.appendChild(heart);
+    setTimeout(() => heart.remove(), 1000);
+}
+
+// --- BUTTON ACTIONS ---
+function feedTwidy() {
+    el.twidy.className = '';
+    setExpression('happy');
+    think("Nyam nyam! Sosis enak! 🌭"); // Contextual to user memory (sosis)
+    
+    // Jump
+    el.twidy.style.transitionDuration = '0.3s';
+    el.twidy.style.transform = `translate(${state.posX}vw, ${state.posY - 10}vh)`;
+    setTimeout(() => { el.twidy.style.transform = `translate(${state.posX}vw, ${state.posY}vh)`; }, 300);
+}
+
+function playTwidy() {
+    el.twidy.className = '';
+    setExpression('excited');
+    think("Yaaay main!");
+    flipChar(state.facing === 'left' ? 'right' : 'left');
+}
+
+// --- CHAT MODAL (BACKEND FETCH STRUCTURE) ---
 function openChat() {
     document.getElementById('chat-modal').classList.remove('hidden');
+    if(document.getElementById('chat-logs').innerHTML === '') {
+        appendLog("Hai! Hari ini kita mau ngapain? Aku siap nemenin kamu!", 'twidy');
+    }
 }
-function closeChat() {
-    document.getElementById('chat-modal').classList.add('hidden');
-}
-function sendChat() {
+
+function closeChat() { document.getElementById('chat-modal').classList.add('hidden'); }
+
+async function sendChat() {
     const input = document.getElementById('chat-input');
     const logs = document.getElementById('chat-logs');
     const text = input.value.trim();
     if(!text) return;
     
-    logs.innerHTML += `<div class="chat-bubble-msg msg-user">${text}</div>`;
+    appendLog(text, 'user');
     input.value = '';
+    const typingId = appendLog('...', 'twidy');
     
-    // Simulate thinking/backend call
-    setTimeout(() => {
-        const responses = ["Aku setuju!", "Masa sih?", "Hehe, kamu lucu.", "Wah, menarik banget!"];
-        const reply = responses[Math.floor(Math.random() * responses.length)];
-        logs.innerHTML += `<div class="chat-bubble-msg msg-pet">${reply}</div>`;
-        logs.scrollTop = logs.scrollHeight;
-    }, 1000);
+    try {
+        /**
+         * SECURE BACKEND FETCH
+         * Frontend TIDAK mengetahui API Key Gemini. 
+         * Request dikirim ke Vercel Serverless Function (/api/chat)
+         */
+        
+        /* const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text })
+        });
+        const data = await response.json();
+        const reply = data.reply;
+        */
+       
+        // Simulasi respon karena tidak ada backend aktif
+        setTimeout(() => {
+            document.getElementById(typingId).remove();
+            appendLog(`(Terkoneksi ke Backend). Aku dengar kamu bilang: "${text}". Hehe!`, 'twidy');
+            setExpression('blush');
+        }, 1000);
+        
+    } catch (err) {
+        document.getElementById(typingId).innerText = "Maaf, koneksiku ke server terputus... 😿";
+    }
+}
+
+function appendLog(text, sender) {
+    const logs = document.getElementById('chat-logs');
+    const id = `msg-${Date.now()}`;
+    const div = document.createElement('div');
+    div.id = id;
+    div.className = `msg msg-${sender}`;
+    div.innerText = text;
+    logs.appendChild(div);
+    logs.scrollTop = logs.scrollHeight;
+    return id;
 }
