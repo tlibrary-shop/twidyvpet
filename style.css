@@ -4,165 +4,119 @@
     --safe-top: env(safe-area-inset-top, 15px);
     --safe-bottom: env(safe-area-inset-bottom, 15px);
     --primary: #5c8a63;
-    --text-dark: #2d1b11;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Quicksand', sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
 
-html, body {
-    width: 100vw; height: 100dvh; overflow: hidden;
-    background-color: #72b2c9; /* Fallback */
-}
-
+html, body { width: 100vw; height: 100dvh; overflow: hidden; background-color: #2b303a; }
 .hidden { display: none !important; }
 
 /* --- UI LAYER --- */
-#ui-layer {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100;
-    pointer-events: none; transition: opacity 0.4s ease;
-}
+#ui-layer { position: absolute; width: 100%; height: 100%; z-index: 100; pointer-events: none; transition: opacity 0.5s ease; }
 #ui-layer * { pointer-events: auto; }
-
-.top-hud { position: absolute; top: var(--safe-top); left: 0; width: 100%; padding: 15px 20px; display: flex; justify-content: space-between; }
-.pill { background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); padding: 8px 16px; border-radius: 20px; font-weight: 900; color: var(--text-dark); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-.status-pill { display: flex; flex-direction: column; gap: 4px; padding: 8px 12px; }
-.level { font-size: 0.8rem; }
-.exp-bar { width: 60px; height: 6px; background: rgba(0,0,0,0.1); border-radius: 3px; overflow: hidden; }
-#exp-fill { height: 100%; background: #ffb703; width: 0%; transition: width 0.3s; }
-
-.floating-dock {
-    position: absolute; bottom: calc(var(--safe-bottom) + 15px); left: 50%; transform: translateX(-50%);
-    display: flex; gap: 15px; align-items: flex-end; background: rgba(255,255,255,0.5);
-    padding: 10px 20px; border-radius: 35px; backdrop-filter: blur(10px);
-}
-.dock-btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: #fff; font-size: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; }
+.top-hud { display: flex; justify-content: space-between; padding: var(--safe-top) 20px 0; }
+.pill { background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); padding: 10px 18px; border-radius: 25px; font-weight: 800; color: #333; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px;}
+.exp-bar { width: 50px; height: 6px; background: #ddd; border-radius: 3px; overflow: hidden; }
+#exp-fill { height: 100%; width: 0%; background: #fca311; transition: width 0.3s; }
+.floating-dock { position: absolute; bottom: calc(var(--safe-bottom) + 20px); left: 50%; transform: translateX(-50%); display: flex; gap: 20px; align-items: flex-end; }
+.dock-btn { width: 55px; height: 55px; border-radius: 50%; border: none; background: #fff; font-size: 1.6rem; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer; transition: transform 0.2s; }
 .dock-btn:active { transform: scale(0.9); }
-.main-btn { width: 65px; height: 65px; font-size: 2rem; background: var(--primary); color: white; transform: translateY(-10px); box-shadow: 0 8px 20px rgba(92, 138, 99, 0.4); }
+.main-btn { width: 70px; height: 70px; font-size: 2.2rem; background: var(--primary); color: white; transform: translateY(-10px); box-shadow: 0 10px 25px rgba(92,138,99,0.5); }
 
-/* --- THE WORLD (2.5D Garden) --- */
-#world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
+/* --- REALISTIC GARDEN ENVIRONMENT --- */
+#world { position: absolute; width: 100%; height: 100%; }
 
-/* Sky Transitions */
-#sky-layer { position: absolute; width: 100%; height: 50%; top: 0; transition: background 4s ease; }
-.time-morning { background: linear-gradient(180deg, #87CEEB 0%, #e0f6ff 100%); }
-.time-noon { background: linear-gradient(180deg, #4fc3f7 0%, #b3e5fc 100%); }
-.time-afternoon { background: linear-gradient(180deg, #ff9e80 0%, #ffe0b2 100%); }
-.time-night { background: linear-gradient(180deg, #1a237e 0%, #3949ab 100%); }
+/* Sky */
+#sky-layer { position: absolute; width: 100%; height: 60%; transition: background 3s ease; }
+.sky-day { background: linear-gradient(180deg, #56CCF2 0%, #2F80ED 100%); }
+.sky-evening { background: linear-gradient(180deg, #ff7e5f 0%, #feb47b 100%); }
+.sky-night { background: linear-gradient(180deg, #141e30 0%, #243b55 100%); }
 
-#celestial-body { position: absolute; width: 70px; height: 70px; border-radius: 50%; right: 20%; top: 15%; transition: all 4s; }
-.is-sun { background: #FFD700; box-shadow: 0 0 50px #FFD700; }
-.is-moon { background: #f4f6f0; box-shadow: 0 0 30px #fff, inset -10px -10px 0 #e2e5de; }
+#celestial { position: absolute; width: 80px; height: 80px; border-radius: 50%; right: 15%; top: 15%; transition: all 3s; }
+.is-sun { background: #FFD700; box-shadow: 0 0 60px rgba(255, 215, 0, 0.8); }
+.is-moon { background: #e0e0e0; box-shadow: 0 0 40px rgba(255, 255, 255, 0.4), inset -15px -15px 0 #b0b0b0; }
 
-/* Background Mountains & Trees */
-#bg-scenery { position: absolute; width: 100%; height: 40%; bottom: 40%; z-index: 1; }
-.mountain { position: absolute; bottom: 0; background: #a5d6a7; border-radius: 50% 50% 0 0; transition: background 4s; }
-.m1 { width: 300px; height: 150px; left: -50px; background: #81c784; }
-.m2 { width: 400px; height: 200px; right: -100px; background: #a5d6a7; }
-.time-night .mountain { filter: brightness(0.4) saturate(0.8); }
+/* Scenery Depth */
+#scenery { position: absolute; width: 100%; height: 40%; bottom: 40%; }
+.mountain { position: absolute; bottom: 0; border-radius: 50% 50% 0 0; transition: background 3s; }
+.layer-1 { width: 120%; height: 150px; left: -10%; background: #4a7c59; z-index: 1; }
+.layer-2 { width: 80%; height: 220px; right: -10%; background: #3b5f43; z-index: 0; }
+.sky-night ~ #scenery .mountain { filter: brightness(0.3) saturate(0.8); }
 
-/* Garden Ground & Zones */
-#garden-ground { position: absolute; width: 100%; height: 50%; bottom: 0; background: linear-gradient(180deg, #9ccc65 0%, #7cb342 100%); z-index: 2; transition: background 4s; }
-.time-night #garden-ground { filter: brightness(0.5); }
+/* Ground */
+#ground { position: absolute; width: 100%; height: 50%; bottom: 0; background: linear-gradient(180deg, #68a678 0%, #437a50 100%); z-index: 2; transition: filter 3s; }
+.sky-night ~ #ground { filter: brightness(0.4); }
 
-.stone-path { position: absolute; bottom: 10%; left: 0; width: 100%; height: 80px; background: repeating-radial-gradient(ellipse at center, #dcedc1 0%, #dcedc1 15px, transparent 16px, transparent 30px); opacity: 0.6; transform: perspective(200px) rotateX(45deg); }
+.stone-path { position: absolute; bottom: 5%; width: 100%; height: 120px; background: radial-gradient(circle, #b3c0a4 20%, transparent 21%); background-size: 40px 20px; opacity: 0.8; transform: perspective(300px) rotateX(60deg); }
 
-.zone { position: absolute; }
-/* Kolam */
-.pond { width: 150px; height: 60px; background: #4fc3f7; border-radius: 50%; bottom: 60%; left: 10%; border: 4px solid #81c784; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); overflow: hidden;}
-.water-ripple { position: absolute; top: 50%; left: 50%; width: 100%; height: 100%; background: radial-gradient(circle, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%); animation: ripple 3s infinite; transform: translate(-50%, -50%); }
-.lilypad { position: absolute; top: 20px; left: 30px; width: 25px; height: 15px; background: #689f38; border-radius: 50%; }
-@keyframes ripple { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; } }
+/* Realistic Garden Lamp */
+.garden-lamp { position: absolute; bottom: 45%; right: 20%; width: 40px; height: 160px; z-index: 5; display: flex; flex-direction: column; align-items: center; }
+.pole { width: 8px; height: 120px; background: linear-gradient(90deg, #2c3e50, #1a252f); border-radius: 4px; position: absolute; bottom: 0; }
+.glass-case { width: 30px; height: 40px; background: rgba(255,255,255,0.2); border: 2px solid #2c3e50; border-radius: 5px 5px 15px 15px; position: absolute; top: 0; display: flex; justify-content: center; align-items: center; box-shadow: inset 0 0 10px rgba(255,255,255,0.5); backdrop-filter: blur(2px); }
+.glass-case::before { content: ''; position: absolute; top: -10px; width: 40px; height: 10px; background: #2c3e50; border-radius: 5px 5px 0 0; }
+.bulb { width: 12px; height: 18px; background: #fff; border-radius: 50%; transition: all 2s; opacity: 0.3; }
+.light-glow { position: absolute; top: 20px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255, 230, 150, 0.4) 0%, transparent 60%); border-radius: 50%; opacity: 0; transition: opacity 2s; pointer-events: none; }
 
-/* Bunga */
-.flower-bed { bottom: 30%; right: 15%; display: flex; gap: 10px; font-size: 1.5rem; }
-.flower { animation: sway 3s infinite alternate ease-in-out; transform-origin: bottom; }
-.f2 { animation-delay: 0.5s; } .f3 { animation-delay: 1s; }
+/* Nyalakan Lampu di Malam Hari */
+.sky-night ~ #ground .garden-lamp .bulb { background: #ffe699; box-shadow: 0 0 20px #ffe699; opacity: 1; }
+.sky-night ~ #ground .garden-lamp .light-glow { opacity: 1; }
 
-/* Bangku */
-.bench { bottom: 50%; right: 25%; width: 100px; height: 40px; }
-.wood-plank { width: 100px; height: 15px; background: #8d6e63; border-radius: 5px; border-bottom: 3px solid #5d4037; }
-.wood-leg { position: absolute; top: 15px; width: 8px; height: 25px; background: #795548; }
-.wood-leg.left { left: 10px; } .wood-leg.right { right: 10px; }
+/* Props Lainnya */
+.pond { position: absolute; bottom: 65%; left: 10%; width: 180px; height: 70px; background: linear-gradient(180deg, #56CCF2, #2F80ED); border-radius: 50%; border: 5px solid #4a7c59; box-shadow: inset 0 5px 15px rgba(0,0,0,0.3); overflow: hidden; }
+.water-ripple { position: absolute; top: 50%; left: 50%; width: 100%; height: 100%; background: radial-gradient(circle, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%); transform: translate(-50%, -50%); animation: ripple 4s infinite linear; }
+@keyframes ripple { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(2); opacity: 0; } }
 
-/* Pohon Besar */
-.tree-large { position: absolute; bottom: 60%; right: -20px; z-index: 0; }
-.trunk { width: 30px; height: 120px; background: #5d4037; border-radius: 5px; }
-.leaves { position: absolute; bottom: 80px; left: -60px; width: 150px; height: 150px; background: #388e3c; border-radius: 50%; box-shadow: -20px 20px 0 #2e7d32, 20px 10px 0 #4caf50; animation: sway 4s infinite alternate; transform-origin: bottom center;}
-@keyframes sway { 0% { transform: rotate(-3deg); } 100% { transform: rotate(3deg); } }
+.flower-bed { position: absolute; bottom: 35%; right: 40%; font-size: 2rem; letter-spacing: 5px; animation: sway 3s infinite alternate ease-in-out; }
+@keyframes sway { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
 
-/* --- TWIDY CHARACTER --- */
-#twidy-container {
-    position: absolute; width: 180px; height: 180px; z-index: 10;
-    transition: transform 3s linear; /* Smooth walking translation */
-    margin-left: -90px; margin-top: -160px; /* Centering offsets */
+/* --- SPRITE ENGINE (Karakter Asli Twidy) --- */
+#twidy-container { position: absolute; width: 150px; height: 150px; z-index: 10; margin-left: -75px; margin-top: -130px; transition: transform 2s linear; display: flex; flex-direction: column; align-items: center; }
+.shadow-ground { width: 90px; height: 15px; background: rgba(0,0,0,0.3); border-radius: 50%; filter: blur(3px); position: absolute; bottom: -5px; transition: width 0.3s; }
+
+/* INI ADALAH INTI DARI SPRITE ANIMATION.
+   Kode ini akan memuat file PNG yang Anda simpan di folder 'assets/'.
+*/
+#twidy-sprite {
+    width: 100%; height: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center bottom;
+    transition: transform 0.2s; /* Untuk flip arah */
+    filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
 }
-#twidy-svg { width: 100%; height: 100%; overflow: visible; }
-.shadow-ground { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 100px; height: 15px; background: rgba(0,0,0,0.25); border-radius: 50%; filter: blur(3px); }
 
-/* Invisible Hitboxes */
-.hitbox { position: absolute; border-radius: 50%; cursor: pointer; }
-.h-head { top: 20%; left: 30%; width: 40%; height: 40%; z-index: 12; }
-.h-body { top: 60%; left: 30%; width: 40%; height: 30%; z-index: 12; }
-.h-tail { top: 50%; right: 10%; width: 30%; height: 40%; z-index: 11; }
+/* Mapping Class ke File Asli Gambar 2 Anda */
+.sprite-idle  { background-image: url('assets/idle.png'); animation: breatheSprite 3s infinite; }
+.sprite-walk  { background-image: url('assets/walk.png'); animation: hopSprite 0.4s infinite alternate; }
+.sprite-sit   { background-image: url('assets/sit.png'); }
+.sprite-sleep { background-image: url('assets/sleep.png'); animation: breatheSprite 4s infinite; }
+.sprite-eat   { background-image: url('assets/eat.png'); animation: hopSprite 0.6s infinite alternate; }
 
-/* Micro-Animations (CSS Engine) */
-.anim-breathe-body { animation: breatheBody 3s infinite ease-in-out; transform-origin: center 140px; }
-.anim-breathe-head { animation: breatheHead 3s infinite ease-in-out; transform-origin: center 105px; }
-.anim-tail { animation: tailIdle 4s infinite ease-in-out; transform-origin: 120px 150px; }
-
-@keyframes breatheBody { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.96) scaleX(1.02); } }
-@keyframes breatheHead { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px) rotate(1deg); } }
-@keyframes tailIdle { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(15deg); } }
-
-/* Autonomous Action States */
-.state-walking #t-body { animation: walkBody 0.4s infinite alternate ease-in-out; }
-.state-walking #t-head { animation: walkHead 0.4s infinite alternate ease-in-out; }
-.state-walking #leg-l { animation: walkLegL 0.4s infinite alternate; }
-.state-walking #leg-r { animation: walkLegR 0.4s infinite alternate-reverse; }
-@keyframes walkBody { to { transform: translateY(-8px); } }
-@keyframes walkHead { to { transform: translateY(-10px); } }
-@keyframes walkLegL { to { transform: translateY(-5px) translateX(-5px); } }
-@keyframes walkLegR { to { transform: translateY(-5px) translateX(5px); } }
-
-.state-sleeping #t-head { transform: translateY(15px) rotate(8deg); }
-.state-sleeping #t-body { transform: scaleY(0.9) scaleX(1.05) translateY(10px); }
-.state-sleeping #eye-l, .state-sleeping #eye-r { d: path("M 70 107 Q 81 103, 92 107"); } /* Eyes closed */
-.state-sleeping .pupil { display: none; }
-.state-sleeping #zzz-fx { opacity: 1; animation: zzzFloat 2s infinite; }
-@keyframes zzzFloat { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-20px) scale(1.2); opacity: 0; } }
-
-.state-sit #t-body { transform: translateY(20px) scaleY(0.9); }
-.state-sit #t-head { transform: translateY(20px); }
-.state-sit #t-legs { transform: translateY(15px); }
-.state-sit #t-tail { transform: rotate(30deg) translateY(10px); }
+/* Micro CSS Animations diterapkan ke kontainer gambar */
+@keyframes breatheSprite { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.97) scaleX(1.02); } }
+@keyframes hopSprite { 0% { transform: translateY(0); } 100% { transform: translateY(-10px); } }
 
 /* Thought Bubble */
-#thought-bubble {
-    position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
-    background: white; padding: 10px 18px; border-radius: 20px; font-weight: 800; color: var(--text-dark);
-    font-size: 0.9rem; box-shadow: 0 8px 20px rgba(0,0,0,0.15); opacity: 1; transition: opacity 0.3s;
-    white-space: nowrap; pointer-events: none; z-index: 15;
-}
-#thought-bubble::after { content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); border-width: 6px 6px 0; border-style: solid; border-color: white transparent transparent transparent; }
+#thought-bubble { position: absolute; top: -40px; background: white; padding: 12px 20px; border-radius: 20px; font-weight: 800; color: #333; font-size: 0.95rem; box-shadow: 0 10px 25px rgba(0,0,0,0.15); opacity: 1; transition: opacity 0.3s; white-space: nowrap; pointer-events: none; z-index: 20; }
+#thought-bubble::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); border-width: 8px 8px 0; border-style: solid; border-color: white transparent transparent transparent; }
 
-/* Particles (Butterflies, Fireflies) */
-#particle-layer { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 20; overflow: hidden; }
-.firefly { position: absolute; width: 4px; height: 4px; background: #c6ff00; border-radius: 50%; box-shadow: 0 0 10px #c6ff00; animation: floatFly 5s infinite alternate ease-in-out; }
-.butterfly { position: absolute; font-size: 1.2rem; animation: floatFly 6s infinite alternate ease-in-out; }
-@keyframes floatFly { 0% { transform: translate(0, 0); opacity: 0.5; } 100% { transform: translate(50px, -50px); opacity: 1; } }
+/* Particles */
+#particle-layer { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 15; }
+.firefly { position: absolute; width: 5px; height: 5px; background: #e0ffa8; border-radius: 50%; box-shadow: 0 0 12px #e0ffa8; animation: floatFly 4s infinite alternate ease-in-out; }
+@keyframes floatFly { 0% { transform: translate(0, 0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(40px, -40px); opacity: 0; } }
 
 /* Chat Modal */
-#chat-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 200; display: flex; flex-direction: column; justify-content: flex-end; }
-.chat-wrapper { background: #fff; height: 60dvh; border-radius: 30px 30px 0 0; display: flex; flex-direction: column; padding: 20px; animation: slideUp 0.3s ease; }
+#chat-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 200; display: flex; flex-direction: column; justify-content: flex-end; }
+.chat-wrapper { background: #fff; height: 60dvh; border-radius: 30px 30px 0 0; display: flex; flex-direction: column; padding: 25px; animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.chat-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 10px;}
-.chat-header h4 { color: var(--primary); font-weight: 900; }
-.btn-close { background: none; border: none; font-size: 2rem; color: #aaa; cursor: pointer; }
-.chat-logs { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-bottom: 10px; }
-.msg { max-width: 80%; padding: 12px 18px; border-radius: 20px; font-weight: 700; font-size: 0.95rem; line-height: 1.4; }
-.msg-twidy { background: #f0f4f1; color: var(--text-dark); align-self: flex-start; border-bottom-left-radius: 5px; }
+.chat-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 15px; }
+.chat-header h4 { color: var(--primary); font-size: 1.2rem; }
+.btn-close { background: #eee; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: #555;}
+.chat-logs { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-bottom: 15px; }
+.msg { max-width: 85%; padding: 15px; border-radius: 20px; font-weight: 700; font-size: 0.95rem; line-height: 1.4; }
+.msg-twidy { background: #f0f5f1; color: #333; align-self: flex-start; border-bottom-left-radius: 5px; }
 .msg-user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 5px; }
 .chat-input-row { display: flex; gap: 10px; margin-top: 10px; }
-.chat-input-row input { flex: 1; padding: 15px 20px; border-radius: 25px; border: 2px solid #eee; outline: none; font-size: 1rem; font-weight: 700; transition: border 0.3s; }
+.chat-input-row input { flex: 1; padding: 15px 20px; border-radius: 25px; border: 2px solid #eee; outline: none; font-size: 1rem; font-weight: 700; }
 .chat-input-row input:focus { border-color: var(--primary); }
-.btn-send { width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; border: none; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(92,138,99,0.3); }
+.btn-send { width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; border: none; font-size: 1.2rem; box-shadow: 0 5px 15px rgba(92,138,99,0.3); }
