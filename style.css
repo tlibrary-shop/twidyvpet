@@ -1,201 +1,146 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&display=swap');
 
 :root {
-    --c-primary: #ff8fab;
-    --c-text: #4a403a;
-    --c-glass: rgba(255, 255, 255, 0.45);
-    --c-glass-border: rgba(255, 255, 255, 0.7);
-    --safe-top: env(safe-area-inset-top, 20px);
-    --safe-bottom: env(safe-area-inset-bottom, 20px);
+    --room-width: 150vw; /* Lebih lebar dari layar untuk efek panning */
+    --c-wood-light: #e6c29a;
+    --c-wood-dark: #c09467;
 }
 
-* {
-    margin: 0; padding: 0; box-sizing: border-box;
-    font-family: 'Nunito', sans-serif;
-    user-select: none; -webkit-tap-highlight-color: transparent;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
 
 html, body {
     width: 100vw; height: 100dvh; overflow: hidden;
-    background-color: #1a1a1a; color: var(--c-text);
+    background-color: #000; color: #444;
 }
 
 .hidden { display: none !important; }
-.bounce { transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; }
-.bounce:active { transform: scale(0.9); }
 
-/* --- Onboarding --- */
-#onboarding-screen {
-    position: absolute; width: 100%; height: 100%; z-index: 9999;
-    background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-    display: flex; justify-content: center; align-items: center; text-align: center;
+/* --- UI LAYER (Auto-Hide) --- */
+#ui-layer {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100;
+    pointer-events: none; /* Let clicks pass through to the world */
+    opacity: 0; transition: opacity 0.5s ease;
 }
-.ob-step { position: absolute; opacity: 0; transition: opacity 0.8s ease, transform 0.8s ease; transform: translateY(20px); pointer-events: none; }
-.ob-step.active { opacity: 1; transform: translateY(0); pointer-events: auto; }
+#ui-layer.active { opacity: 1; }
+#ui-layer * { pointer-events: auto; } /* Re-enable clicks for buttons */
 
-.splash-title { font-size: 2.5rem; font-weight: 900; color: var(--c-primary); animation: float 3s ease-in-out infinite; }
-.ob-hint { font-size: 1.1rem; color: #777; margin-bottom: 30px; }
-#egg-container { position: relative; width: 150px; height: 180px; margin: 0 auto; cursor: pointer; }
-.egg-svg { width: 100%; height: 100%; transition: transform 0.1s; }
-.shake { animation: shake 0.4s ease; }
-.crack { stroke: #b0a392; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.top-bar { position: absolute; top: env(safe-area-inset-top, 20px); width: 100%; display: flex; justify-content: space-between; padding: 0 20px; }
+.coin-pill, .time-pill { background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); padding: 8px 15px; border-radius: 20px; font-weight: 800; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05); color: #555; }
 
-.glass-card {
-    background: var(--c-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--c-glass-border); border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+.bottom-bar { position: absolute; bottom: env(safe-area-inset-bottom, 20px); left: 50%; transform: translateX(-50%); display: flex; gap: 20px; align-items: flex-end; }
+.menu-btn { width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border: none; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; }
+.menu-btn:active { transform: scale(0.9); }
+.main-btn { width: 65px; height: 65px; font-size: 2rem; background: #fff; box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+
+/* --- THE WORLD & CAMERA --- */
+#world-camera {
+    width: var(--room-width); height: 100%;
+    transform: translateX(0); transition: transform 2s cubic-bezier(0.25, 1, 0.5, 1); /* Smooth panning */
+    will-change: transform;
 }
-.form-box { padding: 30px; width: 85%; max-width: 350px; }
-.input-group { margin: 15px 0; text-align: left; }
-.input-group label { font-size: 0.9rem; font-weight: 800; color: #666; display: block; margin-bottom: 5px; }
-.input-group input { width: 100%; padding: 12px 15px; border-radius: 12px; border: 2px solid #ddd; outline: none; font-size: 1rem; font-weight: 800; }
-.input-group input:focus { border-color: var(--c-primary); }
-.btn-primary { background: var(--c-primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 15px; font-size: 1.1rem; font-weight: 900; box-shadow: 0 4px 15px rgba(255, 143, 171, 0.4); margin-top: 10px;}
 
-/* --- Environment & Weather --- */
-#game-container { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
-#environment { position: absolute; top: 0; left: 0; width: 100%; height: 60%; z-index: 0; transition: background 2s ease; overflow: hidden; }
-.sky-day { background: linear-gradient(180deg, #90e0ef 0%, #caf0f8 100%); }
-.sky-sunset { background: linear-gradient(180deg, #ffb703 0%, #fb8500 100%); }
-.sky-night { background: linear-gradient(180deg, #023047 0%, #1a1a2e 100%); }
-.sky-rain { background: linear-gradient(180deg, #4a4e69 0%, #9a8c98 100%); }
+#room { width: 100%; height: 100%; position: relative; display: flex; flex-direction: column; }
 
-#celestial { position: absolute; width: 70px; height: 70px; border-radius: 50%; right: 15%; top: 15%; transition: all 2s; }
-.sun { background: #ffd166; box-shadow: 0 0 50px #ffd166; }
-.moon { background: #fdfcdc; box-shadow: 0 0 30px #fdfcdc, inset -10px -10px 0 #e0e0c0; }
+/* Sky & Time */
+#window-view { position: absolute; width: 100%; height: 65%; top: 0; z-index: 0; transition: background 3s ease; }
+.sky-morning { background: linear-gradient(180deg, #a3cef1 0%, #e7ecef 100%); }
+.sky-afternoon { background: linear-gradient(180deg, #ffb5a7 0%, #fcd5ce 100%); }
+.sky-night { background: linear-gradient(180deg, #2b2d42 0%, #8d99ae 100%); }
+#sun-moon { position: absolute; width: 80px; height: 80px; border-radius: 50%; background: #fff9c4; top: 20%; right: 20%; box-shadow: 0 0 40px #fff9c4; transition: all 3s; }
+.sky-night #sun-moon { background: #edf2f4; box-shadow: 0 0 20px #edf2f4, inset -15px -15px 0 #d8e2dc; }
+.clouds { position: absolute; width: 200%; height: 100%; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50"><ellipse cx="20" cy="25" rx="15" ry="10" fill="white" opacity="0.6"/><ellipse cx="40" cy="20" rx="20" ry="15" fill="white" opacity="0.6"/></svg>') repeat-x; background-size: 200px 100px; animation: drift 60s linear infinite; }
+@keyframes drift { to { transform: translateX(-50%); } }
 
-#clouds { position: absolute; width: 100%; height: 100%; opacity: 0.7; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50"><ellipse cx="20" cy="25" rx="15" ry="10" fill="white"/><ellipse cx="40" cy="20" rx="20" ry="15" fill="white"/><ellipse cx="60" cy="25" rx="15" ry="10" fill="white"/></svg>') repeat-x; background-size: 200px 100px; animation: moveClouds 40s linear infinite; }
-@keyframes moveClouds { from { background-position: 0 20%; } to { background-position: 1000px 20%; } }
+/* Wall & Props */
+.wall { flex: 0 0 65%; background: linear-gradient(180deg, #fffaf0, #f0e6d2); position: relative; border-bottom: 12px solid #d4c4b7; z-index: 1; }
+.window-frame { position: absolute; top: 15%; left: 15%; width: 200px; height: 250px; border: 15px solid #fff; border-radius: 8px; background: rgba(255,255,255,0.1); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
+.pane { border: 2px solid rgba(255,255,255,0.5); }
+.bookshelf { position: absolute; top: 35%; right: 15%; width: 100px; height: 120px; background: var(--c-wood-dark); border-radius: 5px; box-shadow: -5px 10px 20px rgba(0,0,0,0.1); display: flex; align-items: flex-end; padding: 10px; gap: 5px; border: 4px solid #8c6239; }
+.book { width: 15px; height: 35px; border-radius: 3px 3px 0 0; }
+.book.red { background: #e07a5f; } .book.blue { background: #3d5a80; height: 45px; } .book.green { background: #81b29a; transform: rotate(15deg); transform-origin: bottom left; }
+.wall-clock { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); width: 50px; height: 50px; background: #fff; border: 5px solid #d4c4b7; border-radius: 50%; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
 
-#weather-layer { position: absolute; width: 100%; height: 100%; pointer-events: none; }
-.rain-drop { position: absolute; width: 2px; height: 15px; background: rgba(255,255,255,0.6); border-radius: 50%; animation: fall linear infinite; }
-.snow-flake { position: absolute; width: 6px; height: 6px; background: white; border-radius: 50%; animation: fall linear infinite; filter: blur(1px); }
-@keyframes fall { 0% { transform: translateY(-20px); } 100% { transform: translateY(500px); } }
+/* Floor */
+.floor { flex: 1; background: repeating-linear-gradient(90deg, var(--c-wood-light), var(--c-wood-light) 60px, var(--c-wood-dark) 60px, var(--c-wood-dark) 63px); position: relative; z-index: 2; perspective: 1000px; }
+.rug { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); width: 300px; height: 120px; background: #e9edc9; border-radius: 50%; border: 6px dashed #ccd5ae; box-shadow: inset 0 0 30px rgba(0,0,0,0.05); }
+.bed { position: absolute; top: -10px; right: 5%; width: 200px; height: 100px; background: #fff; border-radius: 20px 20px 0 0; border: 6px solid #fefae0; box-shadow: -10px 10px 20px rgba(0,0,0,0.1); }
+.blanket { position: absolute; bottom: 0; left: 0; width: 140px; height: 80px; background: #f4a261; border-radius: 0 15px 0 0; }
+.pillow { position: absolute; top: 20px; right: 20px; width: 50px; height: 30px; background: white; border-radius: 15px; box-shadow: -2px 2px 10px rgba(0,0,0,0.05); }
+.plant { position: absolute; bottom: 20px; left: 8%; font-size: 5rem; filter: drop-shadow(5px 10px 10px rgba(0,0,0,0.15)); }
+.broom-stand { position: absolute; top: -20px; left: 30%; font-size: 3rem; transform: rotate(-15deg); filter: drop-shadow(2px 5px 5px rgba(0,0,0,0.1)); opacity: 0.8;}
 
-/* --- Detailed Room --- */
-#room { position: absolute; bottom: 0; width: 100%; height: 80%; display: flex; flex-direction: column; z-index: 1; pointer-events: none; }
-.wall { flex: 0 0 65%; background: linear-gradient(180deg, #fdfbf7, #f4e9de); position: relative; border-bottom: 8px solid #d4c2af; }
-.floor { flex: 1; background: repeating-linear-gradient(90deg, #e2b992, #e2b992 40px, #d6aa81 40px, #d6aa81 43px); position: relative; perspective: 1000px; }
+/* Dust Motes */
+#dust-motes { position: absolute; width: 100%; height: 100%; pointer-events: none; overflow: hidden; }
+.mote { position: absolute; width: 4px; height: 4px; background: rgba(255,255,255,0.4); border-radius: 50%; filter: blur(1px); animation: floatMote 10s linear infinite; }
+@keyframes floatMote { 0% { transform: translateY(0) translateX(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-100px) translateX(50px); opacity: 0; } }
 
-/* Wall Decors */
-.window-container { position: absolute; top: 15%; left: 10%; width: 140px; height: 180px; z-index: 2;}
-.window-frame { width: 100%; height: 100%; border: 10px solid #fff; border-radius: 12px; background: rgba(255,255,255,0.1); display: grid; grid-template-columns: 1fr 1fr; gap: 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); backdrop-filter: blur(1px); }
-.glass { background: transparent; border: 1px solid rgba(255,255,255,0.4); }
-.curtain { position: absolute; top: -5px; width: 40px; height: 105%; background: #ffb3c6; border-radius: 10px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
-.curtain.left { left: -10px; transform: skewY(-2deg); }
-.curtain.right { right: -10px; transform: skewY(2deg); }
-
-.painting { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); width: 70px; height: 50px; background: #fff; border: 4px solid #d4c2af; border-radius: 5px; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-.clock { position: absolute; top: 12%; right: 25%; width: 40px; height: 40px; background: white; border: 4px solid #a8dadc; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-.hand { position: absolute; bottom: 50%; left: 50%; background: #333; transform-origin: bottom center; border-radius: 2px; }
-.hand.hour { width: 3px; height: 12px; margin-left: -1.5px; transform: rotate(45deg); }
-.hand.minute { width: 2px; height: 16px; margin-left: -1px; animation: spinClock 3600s linear infinite; }
-@keyframes spinClock { 100% { transform: rotate(405deg); } }
-
-.bookshelf { position: absolute; top: 35%; right: 5%; width: 90px; height: 80px; background: #c69c6d; border-radius: 5px; display: flex; flex-direction: column; justify-content: space-evenly; padding: 0 5px; box-shadow: 2px 5px 15px rgba(0,0,0,0.1); border: 2px solid #a87b4f;}
-.shelf-row { width: 100%; height: 5px; background: #a87b4f; position: relative; display: flex; align-items: flex-end; gap: 3px; }
-.book { width: 10px; height: 25px; border-radius: 2px 2px 0 0; }
-.book.red { background: #e63946; } .book.blue { background: #457b9d; } .book.green { background: #2a9d8f; } .book.yellow { background: #e9c46a; margin-left: auto;}
-.tilt { transform: rotate(-15deg); transform-origin: bottom left; }
-.decor { font-size: 1rem; margin-bottom: -3px; }
-
-.wardrobe { position: absolute; bottom: 0; right: -10px; width: 80px; height: 160px; background: #fff; border: 3px solid #d4c2af; border-radius: 10px 10px 0 0; display: flex; box-shadow: -5px 0 15px rgba(0,0,0,0.05); }
-.wardrobe .door { flex: 1; border: 1px solid #eee; position: relative; }
-.wardrobe .door::after { content: ''; position: absolute; top: 50%; width: 4px; height: 20px; background: #ccc; border-radius: 2px; }
-.wardrobe .door:first-child::after { right: 3px; } .wardrobe .door:last-child::after { left: 3px; }
-
-.lamp-wall { position: absolute; top: 15%; left: 35%; }
-.bulb { width: 15px; height: 15px; background: #fff; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.1); border-top: 5px solid #555; }
-.glow { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 150px; height: 200px; background: radial-gradient(circle at top, rgba(255,220,100,0.3) 0%, transparent 70%); opacity: 0; transition: opacity 1s; pointer-events: none; }
-
-/* Floor Decors */
-.carpet { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); width: 85%; max-width: 350px; height: 80px; background: #e0fbfc; border-radius: 50%; border: 4px dashed #98c1d9; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); }
-.bed { position: absolute; top: -10px; left: -20px; width: 160px; height: 90px; background: #fff; border-radius: 0 20px 20px 0; border: 4px solid #f1faee; box-shadow: 10px 10px 20px rgba(0,0,0,0.08); display: flex; align-items: center; }
-.pillow { width: 40px; height: 25px; background: white; border-radius: 12px; margin-left: 15px; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
-.blanket { position: absolute; right: 0; bottom: 0; width: 110px; height: 80px; background: #a8dadc; border-radius: 15px 0 0 15px; }
-.plushie { position: absolute; left: 30px; top: 40px; font-size: 1.2rem; transform: rotate(15deg); }
-.desk { position: absolute; bottom: -10px; right: 10%; width: 120px; height: 50px; background: #d4c2af; border-radius: 10px 10px 0 0; box-shadow: -5px -5px 15px rgba(0,0,0,0.1); display: flex; align-items: flex-start; justify-content: space-around; padding-top: -15px; }
-.laptop { font-size: 1.5rem; margin-top: -20px; transform: scaleX(-1); filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));}
-.mug { font-size: 1rem; margin-top: -10px; }
-.plant-large { position: absolute; bottom: 10%; left: 5%; font-size: 3.5rem; filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.1)); }
-
-/* --- HUD & UI --- */
-.top-hud { position: absolute; top: var(--safe-top); left: 0; width: 100%; padding: 0 20px; display: flex; justify-content: space-between; align-items: flex-start; z-index: 10; margin-top: 15px; pointer-events: none;}
-.status-mini { display: flex; align-items: center; padding: 6px 12px 6px 6px; border-radius: 30px; gap: 10px; pointer-events: auto;}
-.avatar-box { width: 42px; height: 42px; background: var(--c-primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 900; color: white; font-size: 1.2rem; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-.info-box { display: flex; flex-direction: column; }
-.names { font-size: 0.8rem; font-weight: 800; }
-.names strong { color: var(--c-primary); }
-.level-badge { font-size: 0.65rem; font-weight: 900; background: #ffb703; color: white; padding: 2px 8px; border-radius: 10px; width: fit-content; margin-top: 2px; }
-.coin-box { padding: 10px 15px; border-radius: 20px; font-weight: 900; font-size: 1rem; display: flex; align-items: center; gap: 5px; pointer-events: auto;}
-
-.side-stats { position: absolute; left: 20px; top: calc(var(--safe-top) + 80px); display: flex; flex-direction: column; gap: 12px; z-index: 10; pointer-events: auto;}
-.stat-indicator { width: 45px; height: 45px; background: var(--c-glass); backdrop-filter: blur(8px); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; border: 1px solid var(--c-glass-border); position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-.stat-indicator .ring { position: absolute; top: -2px; left: -2px; width: 47px; height: 47px; border-radius: 50%; border: 3px solid transparent; border-top-color: var(--c-primary); border-right-color: var(--c-primary); transform: rotate(45deg); transition: border-color 0.5s; }
-
-/* --- Pet Stage & Life Simulation --- */
-.pet-stage { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 22dvh; z-index: 5; pointer-events: none; }
-#pet-wrapper { position: relative; pointer-events: auto; transform-origin: bottom center; }
-.pet-svg { width: 280px; height: 280px; overflow: visible; }
-.shadow-floor { width: 160px; height: 20px; background: rgba(0,0,0,0.15); border-radius: 50%; filter: blur(3px); margin-top: -20px; }
-
-/* CSS Animations for Life Engine */
-.breathe-body { animation: breatheBody 3s infinite ease-in-out; transform-origin: center 180px; }
-.breathe-head { animation: breatheHead 3s infinite ease-in-out; transform-origin: center 130px; }
-.tail-idle { animation: tailIdle 4s infinite ease-in-out; transform-origin: 130px 150px; }
-
-@keyframes breatheBody { 0%, 100% { transform: scaleY(1) scaleX(1); } 50% { transform: scaleY(0.98) scaleX(1.02); } }
-@keyframes breatheHead { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(2px); } }
-@keyframes tailIdle { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(15deg); } }
-
-/* JS Triggered Classes */
-.anim-blink #eyes-group { transform: scaleY(0.1); transform-origin: center 95px; transition: transform 0.1s; }
-.anim-ear-l #ear-l { transform: rotate(-20deg); transform-origin: 60px 85px; transition: transform 0.2s; }
-.anim-ear-r #ear-r { transform: rotate(20deg); transform-origin: 140px 85px; transition: transform 0.2s; }
-.anim-look-l #pet-head { transform: translateX(-10px); transition: transform 0.3s ease; }
-.anim-look-r #pet-head { transform: translateX(10px); transition: transform 0.3s ease; }
-.anim-jump { animation: petJump 0.5s ease; }
-.anim-bounce { animation: petBounce 0.3s 2 alternate; }
-@keyframes petJump { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-60px); } }
-@keyframes petBounce { 0% { transform: scaleY(1); } 100% { transform: scaleY(0.9) scaleX(1.05); } }
-
-/* Dynamic Chat Bubble */
-.chat-bubble {
-    position: absolute; top: -60px; background: white; color: var(--c-text);
-    padding: 12px 20px; border-radius: 20px; font-weight: 800; font-size: 0.95rem;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1); animation: float 3s ease-in-out infinite, popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    white-space: nowrap; pointer-events: none; opacity: 1; transition: opacity 0.3s;
+/* --- CHARACTER --- */
+#character-container {
+    position: absolute; bottom: 15%; width: 250px; height: 250px;
+    transition: transform 3s linear; /* Smooth walking */
+    z-index: 10; display: flex; flex-direction: column; align-items: center;
 }
-.chat-bubble::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); border-width: 8px 8px 0; border-style: solid; border-color: white transparent transparent transparent; }
-@keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+#pet-svg { width: 100%; height: 100%; overflow: visible; cursor: pointer; }
+.shadow-floor { width: 140px; height: 20px; background: rgba(0,0,0,0.2); border-radius: 50%; filter: blur(4px); margin-top: -15px; transition: width 0.3s; }
 
-/* Floating Hearts Particle */
-.heart-particle { position: absolute; color: #ff4d6d; font-size: 1.5rem; pointer-events: none; animation: floatUp 1s ease-out forwards; }
-@keyframes floatUp { 0% { transform: translateY(0) scale(0.5); opacity: 1; } 100% { transform: translateY(-80px) scale(1.5); opacity: 0; } }
-
-/* --- Action Dock --- */
-.action-dock {
-    position: absolute; bottom: calc(var(--safe-bottom) + 15px); left: 50%; transform: translateX(-50%);
-    width: 90%; max-width: 400px; display: flex; justify-content: space-around; align-items: center;
-    padding: 12px; border-radius: 35px; z-index: 20;
+/* Thought Bubble */
+.thought-bubble {
+    position: absolute; top: -40px; background: white; padding: 12px 20px; border-radius: 20px;
+    font-size: 0.9rem; font-weight: 800; color: #555; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    opacity: 1; transition: opacity 0.5s, transform 0.5s; transform: translateY(0);
+    white-space: nowrap; pointer-events: none;
 }
-.dock-btn { background: none; border: none; }
-.dock-btn .icon { width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.4rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid white; transition: background-color 0.3s; }
-.main-btn .icon { width: 65px; height: 65px; font-size: 2rem; transform: translateY(-15px); box-shadow: 0 10px 25px rgba(255, 143, 171, 0.5); }
-.bg-red { background: #ffe3e3; } .bg-blue { background: #e3f2fd; } .bg-pink { background: var(--c-primary); color: white; } .bg-purple { background: #f3e5f5; } .bg-yellow { background: #fff8e1; }
+.thought-bubble.hidden { opacity: 0; transform: translateY(10px); }
+.thought-bubble::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); border-width: 8px 8px 0; border-style: solid; border-color: white transparent transparent transparent; }
 
-/* --- Modals --- */
-.modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 100; display: flex; justify-content: center; align-items: flex-end; }
-.chat-container { width: 100%; height: 65dvh; border-radius: 30px 30px 0 0; display: flex; flex-direction: column; background: rgba(255,255,255,0.95); animation: slideUp 0.3s ease; }
-@keyframes slideUp { 0% { transform: translateY(100%); } 100% { transform: translateY(0); } }
-.chat-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; }
-.chat-header h4 { font-weight: 900; font-size: 1.2rem; color: var(--c-primary); }
-.close-btn { background: none; border: none; font-size: 2rem; color: #aaa; cursor: pointer; line-height: 1; }
-.chat-logs { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-.log-bubble { max-width: 85%; padding: 12px 18px; border-radius: 20px; font-weight: 700; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; }
-.log-user { background: var(--c-primary); color: white; align-self: flex-end; border-bottom-right-radius: 5px; }
-.log-pet { background: #f1f3f5; color: var(--c-text); align-self: flex-start; border-bottom-left-radius: 5px; }
-.chat-input-row { padding: 15px 20px calc(var(--safe-bottom) + 15px) 20px; display: flex; gap: 10px; background: white; }
-.chat-input-row input { flex: 1; padding: 15px 20px; border-radius: 25px; border: 2px solid #eee; outline: none; font-size: 1rem; font-weight: 700; transition: border 0.3s; }
-.chat-input-row input:focus { border-color: var(--c-primary); }
-.btn-send { width: 50px; height: 50px; border-radius: 50%; background: var(--c-primary); color: white; border: none; font-size: 1.2rem; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(255, 143, 171, 0.4); }
+/* Core Autonomous Animations */
+.anim-breathe-body { animation: breatheBody 4s infinite ease-in-out; transform-origin: center 140px; }
+.anim-breathe-head { animation: breatheHead 4s infinite ease-in-out; transform-origin: center 120px; }
+.anim-tail { animation: tailIdle 5s infinite ease-in-out; transform-origin: 130px 150px; }
+
+@keyframes breatheBody { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.97) scaleX(1.02); } }
+@keyframes breatheHead { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(2px) rotate(1deg); } }
+@keyframes tailIdle { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(10deg); } }
+
+/* Walking Animation (Triggered by JS class) */
+.state-walking #part-body { animation: walkBody 0.5s infinite alternate ease-in-out; }
+.state-walking #part-head { animation: walkHead 0.5s infinite alternate ease-in-out; }
+.state-walking #leg-l { animation: walkLegL 0.5s infinite alternate; }
+.state-walking #leg-r { animation: walkLegR 0.5s infinite alternate-reverse; }
+@keyframes walkBody { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+@keyframes walkHead { from { transform: translateY(0); } to { transform: translateY(-12px); } }
+@keyframes walkLegL { from { transform: translateY(0); } to { transform: translateY(-8px) translateX(-5px); } }
+@keyframes walkLegR { from { transform: translateY(0); } to { transform: translateY(-8px) translateX(5px); } }
+
+/* Sweeping Animation */
+.state-sweeping #prop-broom { display: block !important; animation: sweepBroom 1s infinite alternate; transform-origin: 90px 120px; }
+.state-sweeping #arm-l, .state-sweeping #arm-r { animation: sweepArm 1s infinite alternate; transform-origin: top; }
+@keyframes sweepBroom { from { transform: rotate(-15deg); } to { transform: rotate(15deg) translateX(-20px); } }
+@keyframes sweepArm { from { transform: rotate(-10deg); } to { transform: rotate(10deg) translateX(-10px); } }
+
+/* Sleeping */
+.state-sleeping #part-head { transform: translateY(15px) rotate(5deg); }
+.state-sleeping #part-body { transform: scaleY(0.9) scaleX(1.05) translateY(10px); }
+.state-sleeping #eye-l, .state-sleeping #eye-r { d: path("M 70 102 Q 75 98, 80 102"); }
+.state-sleeping .pupil { display: none; }
+.state-sleeping #zzz-fx { opacity: 1; animation: zzzFloat 2s infinite; }
+@keyframes zzzFloat { 0% { transform: translateY(0) scale(0.8); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(-20px) scale(1.2); opacity: 0; } }
+
+/* Reading */
+.state-reading #prop-book { display: block !important; }
+.state-reading #arm-l { transform: rotate(20deg) translateY(-10px); }
+.state-reading #arm-r { transform: rotate(-20deg) translateY(-10px); }
+.state-reading #part-head { transform: translateY(5px) rotate(-3deg); } /* Looking down slightly */
+
+/* Chat Modal */
+#chat-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 200; display: flex; justify-content: center; align-items: flex-end; }
+.chat-box { width: 100%; height: 60dvh; background: #fff; border-radius: 30px 30px 0 0; display: flex; flex-direction: column; padding: 20px; animation: slideUp 0.3s ease; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.chat-logs { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
+.chat-bubble-msg { max-width: 80%; padding: 12px 18px; border-radius: 20px; font-weight: 700; font-size: 0.95rem; }
+.msg-pet { background: #f0f0f0; color: #333; align-self: flex-start; border-bottom-left-radius: 5px; }
+.msg-user { background: #8e44ad; color: white; align-self: flex-end; border-bottom-right-radius: 5px; }
+.chat-input-area { display: flex; gap: 10px; }
+.chat-input-area input { flex: 1; padding: 15px; border-radius: 25px; border: 2px solid #eee; outline: none; font-size: 1rem; font-weight: 700; }
+.chat-input-area button { width: 50px; height: 50px; border-radius: 50%; background: #8e44ad; color: white; border: none; font-size: 1.2rem; cursor: pointer; }
+.btn-close { background: #eee !important; color: #555 !important; }
