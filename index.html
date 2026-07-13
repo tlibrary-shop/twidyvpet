@@ -2,196 +2,224 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Virtual Pet AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Virtual Pet AI - Mobile Premium</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="game-container" class="room-day">
-        <div id="weather-layer"></div>
 
-        <header class="top-bar">
-            <div class="user-profile glass-panel">
-                <div class="avatar">
-                    <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#333"/><text x="50%" y="55%" text-anchor="middle" fill="#fff" font-size="30" dy=".3em">T</text></svg>
+    <div id="onboarding-screen">
+        <div id="ob-splash" class="ob-step active">
+            <h1 class="splash-title">Virtual Pet AI</h1>
+            <p class="splash-subtitle">Loading...</p>
+        </div>
+        
+        <div id="ob-egg" class="ob-step">
+            <h2 class="ob-hint">Ketuk telur untuk menetaskannya!</h2>
+            <div id="egg-character" onclick="tapEgg()">
+                <svg viewBox="0 0 100 120" width="150" height="180">
+                    <ellipse cx="50" cy="60" rx="45" ry="55" fill="#fff5e6" stroke="#e0cda5" stroke-width="4"/>
+                    <circle cx="30" cy="40" r="10" fill="#ffb3ba"/>
+                    <circle cx="70" cy="80" r="15" fill="#baffc9"/>
+                    <circle cx="60" cy="30" r="8" fill="#bae1ff"/>
+                    <path id="egg-crack" d="M 30 10 L 40 30 L 35 50 L 50 60 L 45 80 L 60 100" stroke="#7a6c57" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0;"/>
+                </svg>
+            </div>
+        </div>
+
+        <div id="ob-name" class="ob-step">
+            <div class="glass-panel form-panel">
+                <h2>Selamat Datang!</h2>
+                <div class="input-group">
+                    <label>Siapa namamu?</label>
+                    <input type="text" id="input-username" placeholder="Namamu..." autocomplete="off">
                 </div>
-                <div class="user-info">
-                    <h2 id="user-name">Twidy</h2>
-                    <div class="level-container">
-                        <span class="level-text">LV. <span id="level-val">12</span></span>
-                        <div class="progress-bar exp-bar">
-                            <div class="progress-fill" id="exp-fill" style="width: 54%;"></div>
-                        </div>
-                        <span class="exp-text"><span id="exp-val">650</span>/1200 XP</span>
-                    </div>
+                <div class="input-group">
+                    <label>Siapa nama peliharaanmu?</label>
+                    <input type="text" id="input-petname" placeholder="Nama Pet..." autocomplete="off">
+                </div>
+                <button class="primary-btn bounce-hover" onclick="finishOnboarding()">Mulai Bermain</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-container" class="hidden">
+        
+        <div id="room-env">
+            <div id="sky-outside">
+                <div class="sun-moon" id="celestial-body"></div>
+                <div id="weather-particles"></div>
+            </div>
+            
+            <div class="wall">
+                <div class="window-frame">
+                    <div class="pane"></div><div class="pane"></div>
+                    <div class="pane"></div><div class="pane"></div>
+                </div>
+                <div class="wall-shelf">
+                    <div class="book red"></div><div class="book blue"></div><div class="plant-pot">🌵</div>
+                </div>
+                <div class="wall-lamp">
+                    <div class="lamp-shade"></div>
+                    <div class="lamp-glow" id="room-light"></div>
                 </div>
             </div>
-
-            <div class="top-actions">
-                <div class="coin-display glass-panel">
-                    <span class="icon">🐾</span>
-                    <span id="coin-val">12,450</span>
-                    <button class="add-btn">+</button>
+            
+            <div class="floor">
+                <div class="rug"></div>
+                <div class="bed">
+                    <div class="pillow"></div>
+                    <div class="blanket"></div>
                 </div>
-                <button class="icon-btn glass-panel" onclick="toggleModal('shop-modal')">🏪<br><span>Toko</span></button>
-                <button class="icon-btn glass-panel" onclick="toggleModal('inventory-modal')">🎒<br><span>Tas</span></button>
+                <div class="small-desk">
+                    <div class="desk-item">📚</div>
+                </div>
+                <div class="big-plant">
+                    🌿
+                </div>
+            </div>
+        </div>
+
+        <header class="top-hud">
+            <div class="profile-hud glass-panel">
+                <div class="hud-avatar">
+                    <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#555"/><text id="avatar-letter" x="50%" y="55%" text-anchor="middle" fill="#fff" font-size="40" dy=".3em" font-weight="bold">A</text></svg>
+                </div>
+                <div class="hud-info">
+                    <div class="hud-name"><span id="user-name">Player</span> & <span id="pet-name" style="color:var(--primary-color)">Pet</span></div>
+                    <div class="level-badge">LV <span id="level-val">1</span></div>
+                </div>
+            </div>
+            <div class="coin-hud glass-panel bounce-hover">
+                🪙 <span id="coin-val">50</span>
             </div>
         </header>
 
-        <aside class="sidebar-left">
-            <div class="status-panel glass-panel">
-                <div class="status-item">
-                    <span class="icon hunger-icon">🍖</span>
-                    <div class="status-details">
-                        <label>Lapar</label>
-                        <div class="progress-bar">
-                            <div class="progress-fill hunger-fill" id="hunger-fill" style="width: 60%;"></div>
-                        </div>
-                    </div>
-                    <span class="status-value" id="hunger-val">60/100</span>
-                </div>
-                <div class="status-item">
-                    <span class="icon happy-icon">😃</span>
-                    <div class="status-details">
-                        <label>Bahagia</label>
-                        <div class="progress-bar">
-                            <div class="progress-fill happy-fill" id="happy-fill" style="width: 80%;"></div>
-                        </div>
-                    </div>
-                    <span class="status-value" id="happy-val">80/100</span>
-                </div>
-                <div class="status-item">
-                    <span class="icon energy-icon">⚡</span>
-                    <div class="status-details">
-                        <label>Energi</label>
-                        <div class="progress-bar">
-                            <div class="progress-fill energy-fill" id="energy-fill" style="width: 40%;"></div>
-                        </div>
-                    </div>
-                    <span class="status-value" id="energy-val">40/100</span>
-                </div>
-                <div class="status-item">
-                    <span class="icon hygiene-icon">🧼</span>
-                    <div class="status-details">
-                        <label>Kebersihan</label>
-                        <div class="progress-bar">
-                            <div class="progress-fill hygiene-fill" id="hygiene-fill" style="width: 70%;"></div>
-                        </div>
-                    </div>
-                    <span class="status-value" id="hygiene-val">70/100</span>
-                </div>
+        <aside class="status-dock glass-panel">
+            <div class="stat-mini">
+                <span class="stat-icon">🍖</span>
+                <div class="stat-bar"><div class="stat-fill" id="hunger-fill" style="background:var(--danger)"></div></div>
             </div>
-
-            <div class="mood-panel glass-panel">
-                <h3>Mood Saat Ini</h3>
-                <div class="mood-status">
-                    <span class="mood-icon" id="current-mood-icon">😀</span>
-                    <span class="mood-text" id="current-mood-text">Senang</span>
-                </div>
-                <p class="mood-desc" id="current-mood-desc">Twidy merasa senang karena kamu telah bermain dengannya!</p>
+            <div class="stat-mini">
+                <span class="stat-icon">😃</span>
+                <div class="stat-bar"><div class="stat-fill" id="happy-fill" style="background:var(--success)"></div></div>
+            </div>
+            <div class="stat-mini">
+                <span class="stat-icon">⚡</span>
+                <div class="stat-bar"><div class="stat-fill" id="energy-fill" style="background:var(--warning)"></div></div>
+            </div>
+            <div class="stat-mini">
+                <span class="stat-icon">🧼</span>
+                <div class="stat-bar"><div class="stat-fill" id="hygiene-fill" style="background:var(--info)"></div></div>
+            </div>
+            <div class="stat-mini exp-mini">
+                <span class="stat-icon" style="font-size:0.8rem">EXP</span>
+                <div class="stat-bar"><div class="stat-fill" id="exp-fill" style="background:var(--primary-color)"></div></div>
             </div>
         </aside>
 
-        <main class="pet-area">
-            <div id="pet-character" class="idle">
-                <svg viewBox="0 0 200 200" width="250" height="250" id="pet-svg">
-                    <g class="tail">
-                        <path d="M 140 120 Q 180 100, 190 140 Q 170 170, 130 150" fill="#3d3d3d"/>
+        <main class="pet-stage">
+            <div id="pet-thought-bubble" class="thought-bubble hidden">Aku lapar...</div>
+            
+            <div id="pet-character" class="anim-idle">
+                <svg viewBox="0 0 200 200" width="350" height="350" id="pet-svg">
+                    <defs>
+                        <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000" flood-opacity="0.2"/>
+                        </filter>
+                    </defs>
+                    <g class="tail" filter="url(#soft-shadow)">
+                        <path d="M 140 120 Q 190 90, 195 140 Q 170 180, 130 150" fill="#d97743"/>
+                        <path d="M 180 120 Q 195 140, 180 155 Q 165 140, 180 120" fill="#fff5e6"/>
                     </g>
-                    <g class="body">
-                        <ellipse cx="100" cy="140" rx="55" ry="45" fill="#4a5e3f"/> <path d="M 60 180 Q 70 190, 80 180" stroke="#f4e4d4" stroke-width="8" stroke-linecap="round" fill="none"/> <path d="M 120 180 Q 130 190, 140 180" stroke="#f4e4d4" stroke-width="8" stroke-linecap="round" fill="none"/> </g>
-                    <g class="head">
-                        <circle cx="100" cy="90" r="50" fill="#f4e4d4"/> <path d="M 60 50 L 70 90 L 50 80 Z" fill="#2d251f"/> <path d="M 140 50 L 130 90 L 150 80 Z" fill="#2d251f"/> <path d="M 65 60 Q 100 40, 135 60 Q 140 100, 100 130 Q 60 100, 65 60" fill="#2d251f"/> <circle cx="75" cy="95" r="18" fill="none" stroke="#222" stroke-width="4"/>
-                        <circle cx="125" cy="95" r="18" fill="none" stroke="#222" stroke-width="4"/>
-                        <line x1="93" y1="95" x2="107" y2="95" stroke="#222" stroke-width="4"/>
+                    <g class="body" filter="url(#soft-shadow)">
+                        <ellipse cx="100" cy="145" rx="60" ry="50" fill="#a4d4b4"/> <path d="M 60 185 Q 70 200, 80 185 Z" fill="#d97743"/> 
+                        <path d="M 120 185 Q 130 200, 140 185 Z" fill="#d97743"/>
+                    </g>
+                    <g class="head" filter="url(#soft-shadow)">
+                        <circle cx="100" cy="90" r="55" fill="#d97743"/> <path d="M 50 40 L 70 80 L 45 80 Z" fill="#b35a2d"/> <path d="M 150 40 L 130 80 L 155 80 Z" fill="#b35a2d"/> <path d="M 47 90 Q 100 50, 153 90 Q 155 145, 100 145 Q 45 145, 47 90 Z" fill="#fff5e6"/>
+                        
+                        <circle cx="65" cy="115" r="8" fill="#ffb3ba" opacity="0.6"/>
+                        <circle cx="135" cy="115" r="8" fill="#ffb3ba" opacity="0.6"/>
+
                         <g class="eyes">
-                            <circle cx="75" cy="95" r="8" fill="#111"/>
-                            <circle cx="72" cy="92" r="3" fill="#fff"/>
-                            <circle cx="125" cy="95" r="8" fill="#111"/>
-                            <circle cx="122" cy="92" r="3" fill="#fff"/>
+                            <ellipse cx="75" cy="95" rx="7" ry="10" fill="#2d251f"/>
+                            <circle cx="73" cy="92" r="3" fill="#fff"/>
+                            <ellipse cx="125" cy="95" rx="7" ry="10" fill="#2d251f"/>
+                            <circle cx="123" cy="92" r="3" fill="#fff"/>
                         </g>
-                        <circle cx="100" cy="110" r="5" fill="#111"/>
-                        <path d="M 90 115 Q 100 125, 110 115" stroke="#111" stroke-width="2" fill="none"/>
-                        <path d="M 95 118 Q 100 130, 105 118 Z" fill="#ff7070" class="tongue"/>
+                        
+                        <circle cx="75" cy="95" r="20" fill="none" stroke="#2d251f" stroke-width="4"/>
+                        <circle cx="125" cy="95" r="20" fill="none" stroke="#2d251f" stroke-width="4"/>
+                        <line x1="95" y1="95" x2="105" y2="95" stroke="#2d251f" stroke-width="4"/>
+                        
+                        <ellipse cx="100" cy="115" rx="6" ry="4" fill="#2d251f"/>
+                        <path d="M 90 125 Q 100 135, 110 125" stroke="#2d251f" stroke-width="3" fill="none" stroke-linecap="round"/>
+                        <path d="M 95 128 Q 100 145, 105 128 Z" fill="#ff7070" class="tongue"/>
                     </g>
                 </svg>
             </div>
-            <div id="interaction-particles"></div>
+            <div class="pet-shadow"></div>
         </main>
 
-        <footer class="bottom-area">
-            <div class="action-buttons glass-panel">
-                <button class="action-btn" onclick="doAction('makan')">
-                    <div class="action-icon" style="background:#ffdddd;">🍲</div>
-                    <span>Makan</span>
-                </button>
-                <button class="action-btn" onclick="doAction('main')">
-                    <div class="action-icon" style="background:#ddddff;">🎮</div>
-                    <span>Main</span>
-                </button>
-                <button class="action-btn" onclick="toggleChat()">
-                    <div class="action-icon" style="background:#f0e0ff;">💬</div>
-                    <span>Ngobrol</span>
-                </button>
-                <button class="action-btn" onclick="doAction('mandi')">
-                    <div class="action-icon" style="background:#ddffff;">🚿</div>
-                    <span>Mandi</span>
-                </button>
-                <button class="action-btn" onclick="doAction('tidur')">
-                    <div class="action-icon" style="background:#ffeedd;">🌙</div>
-                    <span>Tidur</span>
-                </button>
-            </div>
+        <div class="side-menu-right">
+            <button class="circle-btn glass-panel bounce-hover" onclick="toggleModal('shop-modal')">🏪</button>
+            <button class="circle-btn glass-panel bounce-hover" onclick="toggleModal('inventory-modal')">🎒</button>
+        </div>
 
-            <div class="chat-section glass-panel" id="chat-section">
+        <nav class="floating-dock glass-panel">
+            <button class="dock-btn bounce-hover" onclick="doAction('makan')">
+                <div class="dock-icon" style="background:#ffd6d6;">🍗</div>
+            </button>
+            <button class="dock-btn bounce-hover" onclick="doAction('mandi')">
+                <div class="dock-icon" style="background:#d6efff;">🧼</div>
+            </button>
+            <button class="dock-btn main-action-btn bounce-hover" onclick="toggleChat()">
+                <div class="dock-icon" style="background:var(--primary-color); color:white;">💬</div>
+            </button>
+            <button class="dock-btn bounce-hover" onclick="doAction('main')">
+                <div class="dock-icon" style="background:#e3d6ff;">🎮</div>
+            </button>
+            <button class="dock-btn bounce-hover" onclick="doAction('tidur')">
+                <div class="dock-icon" style="background:#fff3d6;">🌙</div>
+            </button>
+        </nav>
+
+        <div class="chat-overlay" id="chat-section">
+            <div class="chat-panel glass-panel">
                 <div class="chat-header">
-                    <h4>Ngobrol dengan Twidy <span class="ai-badge">✨ AI</span></h4>
+                    <h4>AI Chat</h4>
                     <button class="close-btn" onclick="toggleChat()">×</button>
                 </div>
-                <div class="chat-layout">
-                    <div class="chat-history" id="chat-history">
-                        <div class="chat-bubble pet-bubble">
-                            <div class="chat-avatar"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%232d251f'/></svg>" alt="Pet"></div>
-                            <div class="chat-text">Hai! 👋 Hari ini kita mau ngapain? Aku siap nemenin kamu!</div>
-                        </div>
+                <div class="chat-history" id="chat-history">
                     </div>
-                    <div class="pet-memory glass-panel">
-                        <h5>Memori Twidy</h5>
-                        <ul id="memory-list">
-                            <li>Kamu suka ngasih aku makanan sosis 🌭</li>
-                            <li>Kamu sering main sore hari</li>
-                            <li>Kamu bilang mau liburan ke Jepang 🇯🇵</li>
-                        </ul>
-                    </div>
-                </div>
                 <div class="chat-input-area">
-                    <input type="text" id="chat-input" placeholder="Ketik pesan..." onkeypress="handleChatKey(event)">
-                    <button class="send-btn" onclick="sendChatMessage()">Kirim</button>
+                    <input type="text" id="chat-input" placeholder="Ngobrol yuk..." onkeypress="handleChatKey(event)">
+                    <button class="send-btn" onclick="sendChatMessage()">➤</button>
                 </div>
             </div>
-        </footer>
+        </div>
 
         <div id="shop-modal" class="modal-overlay">
             <div class="modal-content glass-panel">
                 <div class="modal-header">
-                    <h3>🏪 Toko</h3>
+                    <h3>Toko</h3>
                     <button class="close-btn" onclick="toggleModal('shop-modal')">×</button>
                 </div>
-                <div class="modal-body shop-grid" id="shop-items">
-                    </div>
+                <div class="modal-body modal-grid" id="shop-items"></div>
             </div>
         </div>
 
         <div id="inventory-modal" class="modal-overlay">
             <div class="modal-content glass-panel">
                 <div class="modal-header">
-                    <h3>🎒 Tas (Inventory)</h3>
+                    <h3>Tas Penyimpanan</h3>
                     <button class="close-btn" onclick="toggleModal('inventory-modal')">×</button>
                 </div>
-                <div class="modal-body inventory-grid" id="inventory-items">
-                    </div>
+                <div class="modal-body modal-grid" id="inventory-items"></div>
             </div>
         </div>
+
     </div>
 
     <script src="script.js"></script>
