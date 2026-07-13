@@ -3,224 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Virtual Pet AI - Mobile Premium</title>
+    <title>Virtual Pet AI - Life Simulation</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="onboarding-screen">
         <div id="ob-splash" class="ob-step active">
-            <h1 class="splash-title">Virtual Pet AI</h1>
-            <p class="splash-subtitle">Loading...</p>
+            <h1 class="splash-title">My Little Companion</h1>
+            <p class="splash-subtitle">Loading world...</p>
         </div>
         
         <div id="ob-egg" class="ob-step">
-            <h2 class="ob-hint">Ketuk telur untuk menetaskannya!</h2>
-            <div id="egg-character" onclick="tapEgg()">
-                <svg viewBox="0 0 100 120" width="150" height="180">
-                    <ellipse cx="50" cy="60" rx="45" ry="55" fill="#fff5e6" stroke="#e0cda5" stroke-width="4"/>
-                    <circle cx="30" cy="40" r="10" fill="#ffb3ba"/>
-                    <circle cx="70" cy="80" r="15" fill="#baffc9"/>
-                    <circle cx="60" cy="30" r="8" fill="#bae1ff"/>
-                    <path id="egg-crack" d="M 30 10 L 40 30 L 35 50 L 50 60 L 45 80 L 60 100" stroke="#7a6c57" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0;"/>
+            <h2 class="ob-hint">Ada telur misterius...<br>Sentuh untuk menghangatkan!</h2>
+            <div id="egg-container" onclick="interactEgg()">
+                <svg viewBox="0 0 100 120" class="egg-svg">
+                    <ellipse cx="50" cy="60" rx="45" ry="55" fill="#fdfbf7" stroke="#e3d6c5" stroke-width="3"/>
+                    <circle cx="30" cy="40" r="8" fill="#ffd1dc"/>
+                    <circle cx="70" cy="80" r="12" fill="#d1e8ff"/>
+                    <circle cx="65" cy="35" r="6" fill="#e8f4d9"/>
+                    <path id="egg-crack-1" d="M 40 10 L 50 30 L 45 45 L 60 55" class="crack hidden"/>
+                    <path id="egg-crack-2" d="M 60 55 L 55 75 L 70 95" class="crack hidden"/>
                 </svg>
+                <div id="egg-hearts"></div>
             </div>
         </div>
 
-        <div id="ob-name" class="ob-step">
-            <div class="glass-panel form-panel">
+        <div id="ob-form" class="ob-step">
+            <div class="glass-card form-box">
                 <h2>Selamat Datang!</h2>
                 <div class="input-group">
                     <label>Siapa namamu?</label>
-                    <input type="text" id="input-username" placeholder="Namamu..." autocomplete="off">
+                    <input type="text" id="input-username" placeholder="Twidy" autocomplete="off">
                 </div>
                 <div class="input-group">
-                    <label>Siapa nama peliharaanmu?</label>
-                    <input type="text" id="input-petname" placeholder="Nama Pet..." autocomplete="off">
+                    <label>Berikan nama untuk teman barumu:</label>
+                    <input type="text" id="input-petname" placeholder="Mochi" autocomplete="off">
                 </div>
-                <button class="primary-btn bounce-hover" onclick="finishOnboarding()">Mulai Bermain</button>
+                <button class="btn-primary bounce" onclick="completeOnboarding()">Mulai Merawat</button>
             </div>
         </div>
     </div>
 
     <div id="game-container" class="hidden">
         
-        <div id="room-env">
-            <div id="sky-outside">
-                <div class="sun-moon" id="celestial-body"></div>
-                <div id="weather-particles"></div>
+        <div id="environment">
+            <div id="sky" class="sky-day">
+                <div id="celestial"></div>
+                <div id="clouds"></div>
+                <div id="sun-rays"></div>
             </div>
-            
+            <div id="weather-layer"></div>
+        </div>
+
+        <div id="room">
             <div class="wall">
-                <div class="window-frame">
-                    <div class="pane"></div><div class="pane"></div>
-                    <div class="pane"></div><div class="pane"></div>
+                <div class="clock"><div class="hand hour"></div><div class="hand minute"></div></div>
+                <div class="painting"><span>🌄</span></div>
+                <div class="bookshelf">
+                    <div class="shelf-row"><div class="book red"></div><div class="book blue"></div><div class="book green tilt"></div></div>
+                    <div class="shelf-row"><div class="decor">🪴</div><div class="book yellow"></div></div>
                 </div>
-                <div class="wall-shelf">
-                    <div class="book red"></div><div class="book blue"></div><div class="plant-pot">🌵</div>
+                
+                <div class="window-container">
+                    <div class="curtain left"></div>
+                    <div class="curtain right"></div>
+                    <div class="window-frame">
+                        <div class="glass"></div><div class="glass"></div>
+                        <div class="glass"></div><div class="glass"></div>
+                    </div>
                 </div>
-                <div class="wall-lamp">
-                    <div class="lamp-shade"></div>
-                    <div class="lamp-glow" id="room-light"></div>
+                
+                <div class="wardrobe">
+                    <div class="door"></div><div class="door"></div>
+                </div>
+                
+                <div class="lamp-wall">
+                    <div class="bulb"></div>
+                    <div class="glow" id="night-light"></div>
                 </div>
             </div>
-            
+
             <div class="floor">
-                <div class="rug"></div>
+                <div class="carpet"></div>
                 <div class="bed">
                     <div class="pillow"></div>
                     <div class="blanket"></div>
+                    <div class="plushie">🧸</div>
                 </div>
-                <div class="small-desk">
-                    <div class="desk-item">📚</div>
+                <div class="desk">
+                    <div class="laptop">💻</div>
+                    <div class="mug">☕</div>
                 </div>
-                <div class="big-plant">
-                    🌿
-                </div>
+                <div class="plant-large">🪴</div>
             </div>
         </div>
 
         <header class="top-hud">
-            <div class="profile-hud glass-panel">
-                <div class="hud-avatar">
-                    <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#555"/><text id="avatar-letter" x="50%" y="55%" text-anchor="middle" fill="#fff" font-size="40" dy=".3em" font-weight="bold">A</text></svg>
-                </div>
-                <div class="hud-info">
-                    <div class="hud-name"><span id="user-name">Player</span> & <span id="pet-name" style="color:var(--primary-color)">Pet</span></div>
-                    <div class="level-badge">LV <span id="level-val">1</span></div>
+            <div class="glass-card status-mini">
+                <div class="avatar-box"><span id="hud-initial">T</span></div>
+                <div class="info-box">
+                    <div class="names"><strong id="hud-player">Player</strong> & <span id="hud-pet">Pet</span></div>
+                    <div class="level-badge">LV <span id="val-level">1</span></div>
                 </div>
             </div>
-            <div class="coin-hud glass-panel bounce-hover">
-                🪙 <span id="coin-val">50</span>
-            </div>
+            <div class="glass-card coin-box bounce">🪙 <span id="val-coin">50</span></div>
         </header>
 
-        <aside class="status-dock glass-panel">
-            <div class="stat-mini">
-                <span class="stat-icon">🍖</span>
-                <div class="stat-bar"><div class="stat-fill" id="hunger-fill" style="background:var(--danger)"></div></div>
-            </div>
-            <div class="stat-mini">
-                <span class="stat-icon">😃</span>
-                <div class="stat-bar"><div class="stat-fill" id="happy-fill" style="background:var(--success)"></div></div>
-            </div>
-            <div class="stat-mini">
-                <span class="stat-icon">⚡</span>
-                <div class="stat-bar"><div class="stat-fill" id="energy-fill" style="background:var(--warning)"></div></div>
-            </div>
-            <div class="stat-mini">
-                <span class="stat-icon">🧼</span>
-                <div class="stat-bar"><div class="stat-fill" id="hygiene-fill" style="background:var(--info)"></div></div>
-            </div>
-            <div class="stat-mini exp-mini">
-                <span class="stat-icon" style="font-size:0.8rem">EXP</span>
-                <div class="stat-bar"><div class="stat-fill" id="exp-fill" style="background:var(--primary-color)"></div></div>
-            </div>
+        <aside class="side-stats">
+            <div class="stat-indicator" id="stat-hunger">🍗<div class="ring"></div></div>
+            <div class="stat-indicator" id="stat-energy">⚡<div class="ring"></div></div>
+            <div class="stat-indicator" id="stat-happy">✨<div class="ring"></div></div>
         </aside>
 
         <main class="pet-stage">
-            <div id="pet-thought-bubble" class="thought-bubble hidden">Aku lapar...</div>
+            <div id="pet-bubble" class="chat-bubble hidden"></div>
             
-            <div id="pet-character" class="anim-idle">
-                <svg viewBox="0 0 200 200" width="350" height="350" id="pet-svg">
+            <div id="pet-wrapper">
+                <svg viewBox="0 0 200 200" class="pet-svg" id="pet-model" onclick="handlePetTouch(event)">
                     <defs>
-                        <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000" flood-opacity="0.2"/>
-                        </filter>
+                        <filter id="shadow"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#000" flood-opacity="0.15"/></filter>
                     </defs>
-                    <g class="tail" filter="url(#soft-shadow)">
-                        <path d="M 140 120 Q 190 90, 195 140 Q 170 180, 130 150" fill="#d97743"/>
-                        <path d="M 180 120 Q 195 140, 180 155 Q 165 140, 180 120" fill="#fff5e6"/>
+                    <g id="pet-tail" class="tail-idle" filter="url(#shadow)">
+                        <path d="M 140 130 Q 180 110, 190 150 Q 170 170, 130 150" fill="#f4a261"/>
+                        <path d="M 170 135 Q 190 150, 170 160 Q 150 150, 170 135" fill="#fffdf9"/>
                     </g>
-                    <g class="body" filter="url(#soft-shadow)">
-                        <ellipse cx="100" cy="145" rx="60" ry="50" fill="#a4d4b4"/> <path d="M 60 185 Q 70 200, 80 185 Z" fill="#d97743"/> 
-                        <path d="M 120 185 Q 130 200, 140 185 Z" fill="#d97743"/>
+                    <g id="pet-legs" filter="url(#shadow)">
+                        <path d="M 70 175 Q 80 195, 90 180 Z" fill="#e76f51"/>
+                        <path d="M 110 175 Q 120 195, 130 180 Z" fill="#e76f51"/>
                     </g>
-                    <g class="head" filter="url(#soft-shadow)">
-                        <circle cx="100" cy="90" r="55" fill="#d97743"/> <path d="M 50 40 L 70 80 L 45 80 Z" fill="#b35a2d"/> <path d="M 150 40 L 130 80 L 155 80 Z" fill="#b35a2d"/> <path d="M 47 90 Q 100 50, 153 90 Q 155 145, 100 145 Q 45 145, 47 90 Z" fill="#fff5e6"/>
+                    <g id="pet-body" class="breathe-body" filter="url(#shadow)">
+                        <ellipse cx="100" cy="140" rx="55" ry="45" fill="#2a9d8f"/>
+                        <path d="M 70 130 Q 100 150, 130 130" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <g id="pet-head" class="breathe-head" filter="url(#shadow)">
+                        <g id="ear-l"><path d="M 55 50 L 70 85 L 45 85 Z" fill="#e76f51"/></g>
+                        <g id="ear-r"><path d="M 145 50 L 130 85 L 155 85 Z" fill="#e76f51"/></g>
                         
-                        <circle cx="65" cy="115" r="8" fill="#ffb3ba" opacity="0.6"/>
-                        <circle cx="135" cy="115" r="8" fill="#ffb3ba" opacity="0.6"/>
+                        <circle cx="100" cy="95" r="50" fill="#f4a261"/>
+                        <path d="M 52 95 Q 100 65, 148 95 Q 150 145, 100 145 Q 50 145, 52 95 Z" fill="#fffdf9"/>
+                        
+                        <circle id="blush-l" cx="68" cy="115" r="8" fill="#ffb3c6" opacity="0"/>
+                        <circle id="blush-r" cx="132" cy="115" r="8" fill="#ffb3c6" opacity="0"/>
 
-                        <g class="eyes">
-                            <ellipse cx="75" cy="95" rx="7" ry="10" fill="#2d251f"/>
-                            <circle cx="73" cy="92" r="3" fill="#fff"/>
-                            <ellipse cx="125" cy="95" rx="7" ry="10" fill="#2d251f"/>
-                            <circle cx="123" cy="92" r="3" fill="#fff"/>
+                        <g id="eyes-group">
+                            <path id="eye-l" d="M 68 95 A 6 8 0 1 1 80 95 A 6 8 0 1 1 68 95" fill="#264653"/>
+                            <path id="eye-r" d="M 120 95 A 6 8 0 1 1 132 95 A 6 8 0 1 1 120 95" fill="#264653"/>
+                            <circle class="eye-shine" cx="72" cy="92" r="2.5" fill="#fff"/>
+                            <circle class="eye-shine" cx="124" cy="92" r="2.5" fill="#fff"/>
                         </g>
+
+                        <ellipse cx="100" cy="115" rx="5" ry="3.5" fill="#264653"/>
+                        <path id="mouth" d="M 92 122 Q 100 128, 108 122" stroke="#264653" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path id="tongue" d="M 96 124 Q 100 135, 104 124 Z" fill="#e63946" opacity="0"/>
                         
-                        <circle cx="75" cy="95" r="20" fill="none" stroke="#2d251f" stroke-width="4"/>
-                        <circle cx="125" cy="95" r="20" fill="none" stroke="#2d251f" stroke-width="4"/>
-                        <line x1="95" y1="95" x2="105" y2="95" stroke="#2d251f" stroke-width="4"/>
+                        <path id="tear-l" d="M 70 105 Q 75 115, 70 120 Q 65 115, 70 105" fill="#a8dadc" opacity="0"/>
+                        <path id="tear-r" d="M 130 105 Q 135 115, 130 120 Q 125 115, 130 105" fill="#a8dadc" opacity="0"/>
                         
-                        <ellipse cx="100" cy="115" rx="6" ry="4" fill="#2d251f"/>
-                        <path d="M 90 125 Q 100 135, 110 125" stroke="#2d251f" stroke-width="3" fill="none" stroke-linecap="round"/>
-                        <path d="M 95 128 Q 100 145, 105 128 Z" fill="#ff7070" class="tongue"/>
+                        <text id="zzz-text" x="135" y="60" font-size="16" font-family="sans-serif" fill="#264653" opacity="0" font-weight="bold">Z</text>
                     </g>
                 </svg>
             </div>
-            <div class="pet-shadow"></div>
+            <div class="shadow-floor"></div>
         </main>
 
-        <div class="side-menu-right">
-            <button class="circle-btn glass-panel bounce-hover" onclick="toggleModal('shop-modal')">🏪</button>
-            <button class="circle-btn glass-panel bounce-hover" onclick="toggleModal('inventory-modal')">🎒</button>
-        </div>
-
-        <nav class="floating-dock glass-panel">
-            <button class="dock-btn bounce-hover" onclick="doAction('makan')">
-                <div class="dock-icon" style="background:#ffd6d6;">🍗</div>
-            </button>
-            <button class="dock-btn bounce-hover" onclick="doAction('mandi')">
-                <div class="dock-icon" style="background:#d6efff;">🧼</div>
-            </button>
-            <button class="dock-btn main-action-btn bounce-hover" onclick="toggleChat()">
-                <div class="dock-icon" style="background:var(--primary-color); color:white;">💬</div>
-            </button>
-            <button class="dock-btn bounce-hover" onclick="doAction('main')">
-                <div class="dock-icon" style="background:#e3d6ff;">🎮</div>
-            </button>
-            <button class="dock-btn bounce-hover" onclick="doAction('tidur')">
-                <div class="dock-icon" style="background:#fff3d6;">🌙</div>
-            </button>
+        <nav class="action-dock glass-card">
+            <button class="dock-btn bounce" onclick="triggerAction('feed')"><div class="icon bg-red">🍖</div></button>
+            <button class="dock-btn bounce" onclick="triggerAction('clean')"><div class="icon bg-blue">🧼</div></button>
+            <button class="dock-btn main-btn bounce" onclick="openChat()"><div class="icon bg-pink">💬</div></button>
+            <button class="dock-btn bounce" onclick="triggerAction('play')"><div class="icon bg-purple">🎾</div></button>
+            <button class="dock-btn bounce" onclick="triggerAction('sleep')"><div class="icon bg-yellow">🌙</div></button>
         </nav>
 
-        <div class="chat-overlay" id="chat-section">
-            <div class="chat-panel glass-panel">
+        <div id="chat-modal" class="modal-overlay hidden">
+            <div class="chat-container glass-card">
                 <div class="chat-header">
-                    <h4>AI Chat</h4>
-                    <button class="close-btn" onclick="toggleChat()">×</button>
+                    <h4>Ngobrol</h4>
+                    <button class="close-btn" onclick="closeChat()">×</button>
                 </div>
-                <div class="chat-history" id="chat-history">
-                    </div>
-                <div class="chat-input-area">
-                    <input type="text" id="chat-input" placeholder="Ngobrol yuk..." onkeypress="handleChatKey(event)">
-                    <button class="send-btn" onclick="sendChatMessage()">➤</button>
+                <div class="chat-logs" id="chat-logs"></div>
+                <div class="chat-input-row">
+                    <input type="text" id="chat-input" placeholder="Tulis sesuatu..." onkeypress="handleEnter(event)">
+                    <button class="btn-send bounce" onclick="sendMessage()">➤</button>
                 </div>
-            </div>
-        </div>
-
-        <div id="shop-modal" class="modal-overlay">
-            <div class="modal-content glass-panel">
-                <div class="modal-header">
-                    <h3>Toko</h3>
-                    <button class="close-btn" onclick="toggleModal('shop-modal')">×</button>
-                </div>
-                <div class="modal-body modal-grid" id="shop-items"></div>
-            </div>
-        </div>
-
-        <div id="inventory-modal" class="modal-overlay">
-            <div class="modal-content glass-panel">
-                <div class="modal-header">
-                    <h3>Tas Penyimpanan</h3>
-                    <button class="close-btn" onclick="toggleModal('inventory-modal')">×</button>
-                </div>
-                <div class="modal-body modal-grid" id="inventory-items"></div>
             </div>
         </div>
 
     </div>
+
+    <audio id="sfx-hatch" preload="auto"></audio>
+    <audio id="sfx-pop" preload="auto"></audio>
+    <audio id="sfx-happy" preload="auto"></audio>
+    <audio id="sfx-eat" preload="auto"></audio>
 
     <script src="script.js"></script>
 </body>
