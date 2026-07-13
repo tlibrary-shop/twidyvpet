@@ -3,148 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Cozy Life - AI Companion</title>
+    <title>Twidy's Cozy Garden</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- UI Overlay (Auto-hides when inactive) -->
-    <div id="ui-layer" class="active">
-        <div class="top-bar">
-            <div class="coin-pill">🪙 <span id="coin-val">50</span></div>
-            <div class="time-pill" id="clock-display">08:00</div>
-        </div>
-        
-        <div class="bottom-bar">
-            <button class="menu-btn" onclick="interact('feed')">🍲</button>
-            <button class="menu-btn main-btn" onclick="openChat()">💬</button>
-            <button class="menu-btn" onclick="interact('play')">🎾</button>
-        </div>
+    <div id="ui-layer">
+        <header class="top-hud">
+            <div class="pill status-pill">
+                <span class="level">LV. <span id="val-level">1</span></span>
+                <div class="exp-bar"><div id="exp-fill"></div></div>
+            </div>
+            <div class="pill coin-pill">🪙 <span id="val-coin">50</span></div>
+        </header>
+
+        <nav class="floating-dock">
+            <button class="dock-btn" onclick="feedTwidy()">🍖</button>
+            <button class="dock-btn main-btn" onclick="openChat()">💬</button>
+            <button class="dock-btn" onclick="playTwidy()">🎾</button>
+        </nav>
     </div>
 
-    <!-- The World (Wider than screen for camera panning) -->
-    <div id="world-camera">
-        <div id="room">
-            <!-- Environment / Background -->
-            <div id="window-view" class="sky-morning">
-                <div id="sun-moon"></div>
-                <div class="clouds"></div>
-            </div>
-            
-            <div class="wall">
-                <div class="window-frame" id="zone-window">
-                    <div class="pane"></div><div class="pane"></div>
-                    <div class="pane"></div><div class="pane"></div>
-                </div>
-                <div class="wall-clock"><div class="hand h"></div><div class="hand m"></div></div>
-                <div class="bookshelf" id="zone-bookshelf">
-                    <div class="book red"></div><div class="book blue"></div><div class="book green"></div>
-                </div>
-                <div class="painting">🌿</div>
-                
-                <!-- Atmospheric Particles -->
-                <div id="dust-motes"></div>
-            </div>
-            
-            <div class="floor">
-                <div class="bed" id="zone-bed">
-                    <div class="blanket"></div>
-                    <div class="pillow"></div>
-                </div>
-                <div class="rug" id="zone-center"></div>
-                <div class="plant" id="zone-plant">🪴</div>
-                <div class="broom-stand">🧹</div>
-            </div>
-
-            <!-- The Character -->
-            <div id="character-container" style="transform: translateX(200px);">
-                <div class="thought-bubble hidden" id="thought-bubble">...</div>
-                
-                <svg viewBox="0 0 200 200" id="pet-svg" onclick="pokeCharacter()">
-                    <defs>
-                        <filter id="soft-shadow"><feDropShadow dx="0" dy="8" stdDeviation="5" flood-color="#000" flood-opacity="0.2"/></filter>
-                    </defs>
-                    
-                    <!-- Ekor -->
-                    <g id="part-tail" class="anim-tail">
-                        <path d="M 130 140 Q 180 110, 185 150 Q 160 170, 130 150" fill="#a07855"/>
-                    </g>
-                    
-                    <!-- Kaki Belakang & Depan -->
-                    <g id="part-legs">
-                        <path id="leg-l" d="M 75 170 Q 80 195, 90 185 Z" fill="#6d4c41"/>
-                        <path id="leg-r" d="M 115 170 Q 120 195, 130 185 Z" fill="#6d4c41"/>
-                    </g>
-
-                    <!-- Tubuh -->
-                    <g id="part-body" class="anim-breathe-body">
-                        <ellipse cx="100" cy="140" rx="50" ry="40" fill="#a07855" filter="url(#soft-shadow)"/>
-                        <!-- Perut Putih -->
-                        <ellipse cx="100" cy="145" rx="35" ry="25" fill="#f4e4d4"/>
-                    </g>
-
-                    <!-- Props (Hidden by default) -->
-                    <g id="prop-book" class="hidden">
-                        <rect x="70" y="120" width="30" height="25" fill="#8e44ad" rx="2" transform="rotate(-15 85 132)"/>
-                        <rect x="100" y="120" width="30" height="25" fill="#9b59b6" rx="2" transform="rotate(15 115 132)"/>
-                        <line x1="75" y1="125" x2="95" y2="125" stroke="#fff" stroke-width="2" transform="rotate(-15 85 132)"/>
-                        <line x1="105" y1="125" x2="125" y2="125" stroke="#fff" stroke-width="2" transform="rotate(15 115 132)"/>
-                    </g>
-
-                    <g id="prop-broom" class="hidden">
-                        <line x1="60" y1="70" x2="110" y2="180" stroke="#8d6e63" stroke-width="6" stroke-linecap="round"/>
-                        <path d="M 95 180 L 125 180 L 115 200 L 90 200 Z" fill="#d4e157"/>
-                    </g>
-
-                    <!-- Kepala -->
-                    <g id="part-head" class="anim-breathe-head" filter="url(#soft-shadow)">
-                        <!-- Telinga -->
-                        <g class="anim-ear-l"><path d="M 55 60 L 70 95 L 45 90 Z" fill="#a07855"/></g>
-                        <g class="anim-ear-r"><path d="M 145 60 L 130 95 L 155 90 Z" fill="#a07855"/></g>
-                        
-                        <!-- Wajah Dasar -->
-                        <circle cx="100" cy="100" r="48" fill="#a07855"/>
-                        <path d="M 55 100 Q 100 75, 145 100 Q 148 145, 100 145 Q 52 145, 55 100 Z" fill="#f4e4d4"/>
-                        
-                        <circle id="blush-l" cx="70" cy="118" r="7" fill="#ff8fab" opacity="0"/>
-                        <circle id="blush-r" cx="130" cy="118" r="7" fill="#ff8fab" opacity="0"/>
-
-                        <!-- Mata -->
-                        <g id="eyes">
-                            <path id="eye-l" d="M 70 100 A 5 7 0 1 1 80 100 A 5 7 0 1 1 70 100" fill="#3e2723"/>
-                            <path id="eye-r" d="M 120 100 A 5 7 0 1 1 130 100 A 5 7 0 1 1 120 100" fill="#3e2723"/>
-                            <circle class="pupil" cx="73" cy="98" r="2" fill="#fff"/>
-                            <circle class="pupil" cx="123" cy="98" r="2" fill="#fff"/>
-                        </g>
-
-                        <!-- Mulut & Hidung -->
-                        <ellipse cx="100" cy="115" rx="4" ry="2.5" fill="#3e2723"/>
-                        <path id="mouth" d="M 94 122 Q 100 128, 106 122" stroke="#3e2723" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        
-                        <!-- Zzz -->
-                        <text id="zzz-fx" x="130" y="70" font-size="18" font-family="sans-serif" fill="#555" font-weight="bold" opacity="0">Z</text>
-                    </g>
-                    
-                    <!-- Lengan (Berada di atas prop) -->
-                    <g id="part-arms">
-                        <path id="arm-l" d="M 65 140 Q 60 160, 75 155" stroke="#a07855" stroke-width="12" stroke-linecap="round" fill="none"/>
-                        <path id="arm-r" d="M 135 140 Q 140 160, 125 155" stroke="#a07855" stroke-width="12" stroke-linecap="round" fill="none"/>
-                    </g>
-                </svg>
-                <div class="shadow-floor"></div>
-            </div>
-
+    <div id="world">
+        <div id="sky-layer">
+            <div id="celestial-body"></div>
+            <div id="clouds-container"></div>
+            <div id="stars-container" class="hidden"></div>
         </div>
+
+        <div id="bg-scenery">
+            <div class="mountain m1"></div>
+            <div class="mountain m2"></div>
+            <div class="tree-line"></div>
+        </div>
+
+        <div id="garden-ground">
+            <div class="stone-path"></div>
+            
+            <div class="zone pond" id="zone-pond">
+                <div class="water-ripple"></div>
+                <div class="lilypad"></div>
+            </div>
+            
+            <div class="zone flower-bed" id="zone-flowers">
+                <span class="flower f1">🌸</span>
+                <span class="flower f2">🌷</span>
+                <span class="flower f3">🌼</span>
+            </div>
+            
+            <div class="zone bench" id="zone-bench">
+                <div class="wood-plank"></div>
+                <div class="wood-leg left"></div><div class="wood-leg right"></div>
+            </div>
+
+            <div class="tree-large" id="zone-tree">
+                <div class="trunk"></div>
+                <div class="leaves"></div>
+            </div>
+        </div>
+
+        <div id="twidy-container" style="transform: translate(50vw, 60vh);">
+            <div id="thought-bubble" class="hidden">...</div>
+            
+            <svg viewBox="0 0 200 200" id="twidy-svg">
+                <defs>
+                    <filter id="soft-shadow"><feDropShadow dx="0" dy="5" stdDeviation="3" flood-color="#000" flood-opacity="0.15"/></filter>
+                </defs>
+
+                <g id="t-tail" class="anim-tail" filter="url(#soft-shadow)">
+                    <path d="M 120 150 Q 180 120, 185 160 Q 160 190, 120 160" fill="#e87a3e"/>
+                    <path d="M 165 145 Q 185 160, 165 175 Q 150 160, 165 145" fill="#fff9f2"/>
+                </g>
+
+                <g id="t-legs">
+                    <path id="leg-l" d="M 75 165 Q 80 185, 90 180 Z" fill="#4a2e1b"/>
+                    <path id="leg-r" d="M 125 165 Q 130 185, 140 180 Z" fill="#4a2e1b"/>
+                </g>
+
+                <g id="t-body" class="anim-breathe-body" filter="url(#soft-shadow)">
+                    <ellipse cx="100" cy="140" rx="45" ry="35" fill="#5c8a63"/>
+                    <path d="M 85 170 Q 100 175, 115 170 L 110 175 Q 100 180, 90 175 Z" fill="#4a7050"/> <text x="100" y="150" font-family="sans-serif" font-weight="900" font-size="14" fill="#ffffff" text-anchor="middle" opacity="0.9" letter-spacing="1">TWIDY</text>
+                    <path d="M 100 125 L 100 160" stroke="#4a7050" stroke-width="2"/> </g>
+
+                <g id="t-arms" class="anim-breathe-body">
+                    <path id="arm-l" d="M 65 135 Q 55 155, 75 155" stroke="#5c8a63" stroke-width="12" stroke-linecap="round" fill="none"/>
+                    <path id="arm-r" d="M 135 135 Q 145 155, 125 155" stroke="#5c8a63" stroke-width="12" stroke-linecap="round" fill="none"/>
+                </g>
+
+                <g id="t-head" class="anim-breathe-head" filter="url(#soft-shadow)">
+                    <g id="ear-l"><path d="M 50 65 L 65 100 L 40 95 Z" fill="#e87a3e"/><path d="M 52 70 L 60 95 L 45 92 Z" fill="#4a2e1b"/></g>
+                    <g id="ear-r"><path d="M 150 65 L 135 100 L 160 95 Z" fill="#e87a3e"/><path d="M 148 70 L 140 95 L 155 92 Z" fill="#4a2e1b"/></g>
+                    
+                    <circle cx="100" cy="105" r="45" fill="#e87a3e"/>
+                    <path d="M 60 105 Q 100 85, 140 105 Q 145 145, 100 145 Q 55 145, 60 105 Z" fill="#fff9f2"/>
+                    
+                    <circle id="blush-l" cx="72" cy="122" r="6" fill="#ff7b9c" opacity="0"/>
+                    <circle id="blush-r" cx="128" cy="122" r="6" fill="#ff7b9c" opacity="0"/>
+
+                    <g id="eyes">
+                        <path id="eye-l" d="M 75 105 A 6 8 0 1 1 87 105 A 6 8 0 1 1 75 105" fill="#2d1b11"/>
+                        <path id="eye-r" d="M 113 105 A 6 8 0 1 1 125 105 A 6 8 0 1 1 113 105" fill="#2d1b11"/>
+                        <circle class="pupil" cx="79" cy="102" r="2.5" fill="#fff"/>
+                        <circle class="pupil" cx="117" cy="102" r="2.5" fill="#fff"/>
+                    </g>
+
+                    <circle cx="81" cy="105" r="15" fill="none" stroke="#2d1b11" stroke-width="3"/>
+                    <circle cx="119" cy="105" r="15" fill="none" stroke="#2d1b11" stroke-width="3"/>
+                    <line x1="96" y1="105" x2="104" y2="105" stroke="#2d1b11" stroke-width="3"/>
+
+                    <ellipse cx="100" cy="120" rx="3.5" ry="2.5" fill="#2d1b11"/>
+                    <path id="mouth" d="M 95 126 Q 100 132, 105 126" stroke="#2d1b11" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    
+                    <text id="zzz-fx" x="135" y="70" font-size="16" font-family="sans-serif" fill="#555" font-weight="900" opacity="0">Z</text>
+                </g>
+            </svg>
+            <div class="shadow-ground"></div>
+
+            <div class="hitbox h-head" onclick="interact('head')"></div>
+            <div class="hitbox h-body" onclick="interact('body')"></div>
+            <div class="hitbox h-tail" onclick="interact('tail')"></div>
+        </div>
+
+        <div id="particle-layer"></div>
+        <div id="weather-layer"></div>
     </div>
 
-    <!-- Chat Interface -->
     <div id="chat-modal" class="hidden">
-        <div class="chat-box">
+        <div class="chat-wrapper">
+            <div class="chat-header">
+                <h4>Ngobrol dengan Twidy</h4>
+                <button class="btn-close" onclick="closeChat()">×</button>
+            </div>
             <div class="chat-logs" id="chat-logs"></div>
-            <div class="chat-input-area">
-                <input type="text" id="chat-input" placeholder="Katakan sesuatu..." onkeypress="if(event.key==='Enter') sendChat()">
-                <button onclick="sendChat()">➤</button>
-                <button onclick="closeChat()" class="btn-close">✖</button>
+            <div class="chat-input-row">
+                <input type="text" id="chat-input" placeholder="Tulis pesan..." onkeypress="if(event.key==='Enter') sendChat()">
+                <button class="btn-send" onclick="sendChat()">➤</button>
             </div>
         </div>
     </div>
