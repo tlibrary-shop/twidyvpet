@@ -10,58 +10,26 @@
 
     <div id="ui-layer">
         <header class="top-hud">
-            <div class="pill">LV. <span id="val-level">1</span> | <div class="exp-bar"><div id="exp-fill"></div></div></div>
-            <div class="pill">🪙 <span id="val-coin">50</span></div>
+            <div class="pill">LV. 1 | <div class="exp-bar"><div id="exp-fill" style="width: 20%;"></div></div></div>
+            <div class="pill">🪙 50</div>
         </header>
         <nav class="floating-dock">
-            <button class="dock-btn" onclick="triggerAction('feed')">🍖</button>
+            <button class="dock-btn" onclick="pokeTwidy()">👋</button>
             <button class="dock-btn main-btn" onclick="openChat()">💬</button>
-            <button class="dock-btn" onclick="triggerAction('play')">🎾</button>
+            <button class="dock-btn" onclick="feedTwidy()">🍖</button>
         </nav>
     </div>
 
     <div id="world">
-        <div id="sky-layer">
-            <div id="celestial"></div>
-            <div id="clouds"></div>
-        </div>
-
-        <div id="scenery">
-            <div class="mountain layer-1"></div>
-            <div class="mountain layer-2"></div>
-        </div>
-
-        <div id="ground">
-            <div class="stone-path"></div>
-            
-            <div class="pond" id="zone-pond">
-                <div class="water-ripple"></div>
-            </div>
-            
-            <div class="garden-lamp" id="zone-lamp">
-                <div class="pole"></div>
-                <div class="glass-case">
-                    <div class="bulb" id="lamp-bulb"></div>
-                </div>
-                <div class="light-glow" id="lamp-glow"></div>
-            </div>
-
-            <div class="flower-bed" id="zone-flowers">🌸 🌷 🌼</div>
-            <div class="wooden-bench" id="zone-bench">
-                <div class="seat"></div>
-                <div class="leg-l"></div><div class="leg-r"></div>
-            </div>
-        </div>
-
-        <div id="twidy-container" style="transform: translate(50vw, 60vh);">
+        <div id="twidy-container">
             <div id="thought-bubble" class="hidden">...</div>
             
-            <div id="twidy-sprite" class="sprite-idle" onclick="pokeTwidy()"></div>
+            <div id="twidy-sprite">
+                <span class="image-fallback-text">Gambar Twidy Belum Ada</span>
+            </div>
             
             <div class="shadow-ground"></div>
         </div>
-
-        <div id="particle-layer"></div>
     </div>
 
     <div id="chat-modal" class="hidden">
