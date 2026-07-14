@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Twidy's Cozy Garden</title>
+    <title>Twidy Cozy Garden</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,9 +18,13 @@
         </header>
 
         <nav class="floating-dock">
-            <button class="dock-btn" onclick="feedTwidy()">🍖</button>
-            <button class="dock-btn main-btn" onclick="openChat()">💬</button>
-            <button class="dock-btn" onclick="playTwidy()">🎾</button>
+            <button class="dock-btn tooltip" onclick="triggerAction('feed')" data-title="Makan">🍖</button>
+            <button class="dock-btn tooltip" onclick="triggerAction('bath')" data-title="Mandi">🧼</button>
+            
+            <button class="dock-btn main-btn tooltip" onclick="openChat()" data-title="Ngobrol">💬</button>
+            
+            <button class="dock-btn tooltip" onclick="triggerAction('play')" data-title="Main">🎾</button>
+            <button class="dock-btn tooltip" onclick="triggerAction('read')" data-title="Baca Buku">📚</button>
         </nav>
     </div>
 
@@ -38,26 +42,10 @@
         <div id="garden-ground">
             <div class="stone-path"></div>
             
-            <div class="zone pond" id="zone-pond">
-                <div class="water-ripple"></div>
-                <div class="lilypad"></div>
-            </div>
-            
-            <div class="zone flower-bed" id="zone-flowers">
-                <span class="flower f1">🌸</span>
-                <span class="flower f2">🌷</span>
-                <span class="flower f3">🌼</span>
-            </div>
-            
-            <div class="zone bench" id="zone-bench">
-                <div class="wood-plank"></div>
-                <div class="wood-leg left"></div><div class="wood-leg right"></div>
-            </div>
-
-            <div class="tree-large" id="zone-tree">
-                <div class="trunk"></div>
-                <div class="leaves"></div>
-            </div>
+            <div class="zone pond" id="zone-pond"><div class="water-ripple"></div></div>
+            <div class="zone flower-bed" id="zone-flowers"><span class="flower f1">🌸</span><span class="flower f2">🌷</span></div>
+            <div class="zone bench" id="zone-bench"><div class="wood-plank"></div><div class="wood-leg left"></div><div class="wood-leg right"></div></div>
+            <div class="garden-lamp"><div class="pole"></div><div class="glass-case"><div class="bulb"></div></div><div class="light-glow"></div></div>
         </div>
 
         <div id="twidy-container" style="transform: translate(50vw, 55vh);">
