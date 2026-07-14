@@ -8,29 +8,39 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Quicksand', sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
-
-html, body { width: 100vw; height: 100dvh; overflow: hidden; background-color: #72b2c9; }
+html, body { width: 100vw; height: 100dvh; overflow: hidden; background-color: #2b303a; }
 .hidden { display: none !important; }
 
-/* --- UI LAYER --- */
-#ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; transition: opacity 0.4s ease; }
+/* --- UI LAYER (Tetap Terlihat) --- */
+#ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
 #ui-layer * { pointer-events: auto; }
+
 .top-hud { position: absolute; top: var(--safe-top); left: 0; width: 100%; padding: 15px 20px; display: flex; justify-content: space-between; }
-.pill { background: rgba(255,255,255,0.8); backdrop-filter: blur(8px); padding: 8px 16px; border-radius: 20px; font-weight: 900; color: var(--text-dark); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+.pill { background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); padding: 8px 16px; border-radius: 20px; font-weight: 900; color: var(--text-dark); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
 .status-pill { display: flex; flex-direction: column; gap: 4px; padding: 8px 12px; }
 .level { font-size: 0.8rem; }
 .exp-bar { width: 60px; height: 6px; background: rgba(0,0,0,0.1); border-radius: 3px; overflow: hidden; }
 #exp-fill { height: 100%; background: #ffb703; width: 0%; transition: width 0.3s; }
 
-.floating-dock { position: absolute; bottom: calc(var(--safe-bottom) + 15px); left: 50%; transform: translateX(-50%); display: flex; gap: 15px; align-items: flex-end; background: rgba(255,255,255,0.5); padding: 10px 20px; border-radius: 35px; backdrop-filter: blur(10px); }
-.dock-btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: #fff; font-size: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; }
+.floating-dock { position: absolute; bottom: calc(var(--safe-bottom) + 15px); left: 50%; transform: translateX(-50%); display: flex; gap: 15px; align-items: flex-end; background: rgba(255,255,255,0.6); padding: 12px 25px; border-radius: 40px; backdrop-filter: blur(12px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+.dock-btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: #fff; font-size: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s, background 0.2s; }
+.dock-btn:hover { background: #f0f0f0; }
 .dock-btn:active { transform: scale(0.9); }
-.main-btn { width: 65px; height: 65px; font-size: 2rem; background: var(--primary); color: white; transform: translateY(-10px); box-shadow: 0 8px 20px rgba(92, 138, 99, 0.4); }
+.main-btn { width: 70px; height: 70px; font-size: 2.2rem; background: var(--primary); color: white; transform: translateY(-10px); box-shadow: 0 8px 20px rgba(92, 138, 99, 0.4); border: 3px solid white;}
+.main-btn:hover { background: #4a7050; }
+
+/* Tooltip untuk PC Hover */
+.tooltip { position: relative; }
+.tooltip:hover::after {
+    content: attr(data-title);
+    position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.8); color: white; padding: 6px 10px; border-radius: 8px;
+    font-size: 0.85rem; font-weight: 700; white-space: nowrap; pointer-events: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
 
 /* --- THE WORLD (CSS GARDEN) --- */
 #world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
-
-/* Sky Transitions */
 #sky-layer { position: absolute; width: 100%; height: 50%; top: 0; transition: background 4s ease; }
 .time-morning { background: linear-gradient(180deg, #87CEEB 0%, #e0f6ff 100%); }
 .time-noon { background: linear-gradient(180deg, #4fc3f7 0%, #b3e5fc 100%); }
@@ -41,19 +51,17 @@ html, body { width: 100vw; height: 100dvh; overflow: hidden; background-color: #
 .is-sun { background: #FFD700; box-shadow: 0 0 50px #FFD700; }
 .is-moon { background: #f4f6f0; box-shadow: 0 0 30px #fff, inset -10px -10px 0 #e2e5de; }
 
-/* Background Scenery */
 #bg-scenery { position: absolute; width: 100%; height: 40%; bottom: 40%; z-index: 1; }
 .mountain { position: absolute; bottom: 0; background: #a5d6a7; border-radius: 50% 50% 0 0; transition: background 4s, filter 4s; }
-.m1 { width: 300px; height: 150px; left: -50px; background: #81c784; }
-.m2 { width: 400px; height: 200px; right: -100px; background: #a5d6a7; }
+.m1 { width: 300px; height: 150px; left: -50px; background: #4a7c59; }
+.m2 { width: 400px; height: 200px; right: -100px; background: #3b5f43; }
 .time-night ~ #bg-scenery .mountain { filter: brightness(0.4) saturate(0.8); }
 
-/* Garden Ground */
-#garden-ground { position: absolute; width: 100%; height: 50%; bottom: 0; background: linear-gradient(180deg, #9ccc65 0%, #7cb342 100%); z-index: 2; transition: filter 4s; }
+#garden-ground { position: absolute; width: 100%; height: 50%; bottom: 0; background: linear-gradient(180deg, #68a678 0%, #437a50 100%); z-index: 2; transition: filter 4s; }
 .time-night ~ #garden-ground { filter: brightness(0.5); }
-.stone-path { position: absolute; bottom: 10%; left: 0; width: 100%; height: 80px; background: repeating-radial-gradient(ellipse at center, #dcedc1 0%, #dcedc1 15px, transparent 16px, transparent 30px); opacity: 0.6; transform: perspective(200px) rotateX(45deg); }
+.stone-path { position: absolute; bottom: 10%; left: 0; width: 100%; height: 80px; background: repeating-radial-gradient(ellipse at center, #b3c0a4 0%, #b3c0a4 15px, transparent 16px, transparent 30px); opacity: 0.6; transform: perspective(200px) rotateX(45deg); }
 
-/* Zones */
+/* Props Taman */
 .zone { position: absolute; }
 .pond { width: 150px; height: 60px; background: #4fc3f7; border-radius: 50%; bottom: 60%; left: 10%; border: 4px solid #81c784; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); overflow: hidden;}
 .water-ripple { position: absolute; top: 50%; left: 50%; width: 100%; height: 100%; background: radial-gradient(circle, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%); animation: ripple 3s infinite; transform: translate(-50%, -50%); }
@@ -61,45 +69,45 @@ html, body { width: 100vw; height: 100dvh; overflow: hidden; background-color: #
 
 .flower-bed { bottom: 30%; right: 15%; display: flex; gap: 10px; font-size: 1.5rem; }
 .flower { animation: sway 3s infinite alternate ease-in-out; transform-origin: bottom; }
-.f2 { animation-delay: 0.5s; } .f3 { animation-delay: 1s; }
+.f2 { animation-delay: 0.5s; }
 
 .bench { bottom: 50%; right: 25%; width: 100px; height: 40px; }
 .wood-plank { width: 100px; height: 15px; background: #8d6e63; border-radius: 5px; border-bottom: 3px solid #5d4037; }
 .wood-leg { position: absolute; top: 15px; width: 8px; height: 25px; background: #795548; }
 .wood-leg.left { left: 10px; } .wood-leg.right { right: 10px; }
 
-.tree-large { position: absolute; bottom: 60%; right: -20px; z-index: 0; }
-.trunk { width: 30px; height: 120px; background: #5d4037; border-radius: 5px; }
-.leaves { position: absolute; bottom: 80px; left: -60px; width: 150px; height: 150px; background: #388e3c; border-radius: 50%; box-shadow: -20px 20px 0 #2e7d32, 20px 10px 0 #4caf50; animation: sway 4s infinite alternate; transform-origin: bottom center;}
-@keyframes sway { 0% { transform: rotate(-3deg); } 100% { transform: rotate(3deg); } }
+/* Lampu Taman Realistis */
+.garden-lamp { position: absolute; bottom: 45%; right: 5%; width: 30px; height: 140px; z-index: 5; display: flex; flex-direction: column; align-items: center; }
+.pole { width: 6px; height: 110px; background: #2c3e50; border-radius: 3px; position: absolute; bottom: 0; }
+.glass-case { width: 25px; height: 35px; background: rgba(255,255,255,0.2); border: 2px solid #2c3e50; border-radius: 5px 5px 10px 10px; position: absolute; top: 0; display: flex; justify-content: center; align-items: center; }
+.glass-case::before { content: ''; position: absolute; top: -8px; width: 35px; height: 8px; background: #2c3e50; border-radius: 4px 4px 0 0; }
+.bulb { width: 10px; height: 15px; background: #fff; border-radius: 50%; transition: all 2s; opacity: 0.3; }
+.light-glow { position: absolute; top: 15px; width: 250px; height: 250px; background: radial-gradient(circle, rgba(255, 230, 150, 0.4) 0%, transparent 60%); border-radius: 50%; opacity: 0; transition: opacity 2s; pointer-events: none; transform: translateX(-50%); left: 50%;}
+.time-night ~ #garden-ground .garden-lamp .bulb { background: #ffe699; box-shadow: 0 0 20px #ffe699; opacity: 1; }
+.time-night ~ #garden-ground .garden-lamp .light-glow { opacity: 1; }
 
 /* --- TWIDY SPRITE CONTAINER --- */
 #twidy-container { position: absolute; width: 150px; height: 150px; z-index: 10; margin-left: -75px; margin-top: -120px; transition: transform 2s linear; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;}
 
-/* URL LANGSUNG DARI GITHUB KAMU */
 #twidy-sprite {
     width: 100%; height: 100%;
     background-image: url('https://raw.githubusercontent.com/tlibrary-shop/twidyvpet/refs/heads/main/assets/Idle.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center bottom;
-    transition: transform 0.2s; /* Untuk flip arah kiri/kanan */
-    filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
+    background-size: contain; background-repeat: no-repeat; background-position: center bottom;
+    transition: transform 0.2s; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3)); cursor: pointer;
 }
 
-.shadow-ground { position: absolute; bottom: -5px; width: 80px; height: 15px; background: rgba(0,0,0,0.25); border-radius: 50%; filter: blur(3px); z-index: -1; }
+.shadow-ground { position: absolute; bottom: -5px; width: 80px; height: 15px; background: rgba(0,0,0,0.3); border-radius: 50%; filter: blur(3px); z-index: -1; transition: width 0.3s; }
 
-/* Trik CSS untuk membuat 1 gambar terlihat punya banyak animasi
-*/
+/* Animasi CSS */
 .sprite-idle { animation: breathe 3s infinite ease-in-out; transform-origin: bottom center; }
 .sprite-walk { animation: hopWalk 0.4s infinite alternate; }
-.sprite-sit { transform: translateY(15px) scaleY(0.95); } /* Sedikit gepeng agar terlihat duduk */
-.sprite-sleep { animation: breathe 4s infinite; filter: brightness(0.8); } /* Lebih gelap dan napas pelan */
+.sprite-sit { transform: translateY(15px) scaleY(0.95); } 
+.sprite-sleep { animation: breathe 4s infinite; filter: brightness(0.8); }
 
 @keyframes breathe { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.96) scaleX(1.02); } }
 @keyframes hopWalk { 0% { transform: translateY(0); } 100% { transform: translateY(-12px); } }
 
-/* Bubbles */
+/* Bubbles & Zzz */
 #thought-bubble { position: absolute; top: -30px; background: white; padding: 10px 18px; border-radius: 20px; font-weight: 800; color: var(--text-dark); font-size: 0.9rem; box-shadow: 0 8px 20px rgba(0,0,0,0.15); opacity: 1; transition: opacity 0.3s; white-space: nowrap; pointer-events: none; z-index: 15; }
 #thought-bubble::after { content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); border-width: 6px 6px 0; border-style: solid; border-color: white transparent transparent transparent; }
 #zzz-fx { position: absolute; top: -10px; right: 0; font-size: 1.2rem; font-weight: 900; color: #555; animation: floatUpZzz 2s infinite; opacity: 0; }
@@ -107,23 +115,24 @@ html, body { width: 100vw; height: 100dvh; overflow: hidden; background-color: #
 
 /* Particles */
 #particle-layer { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 20; overflow: hidden; }
-.firefly { position: absolute; width: 4px; height: 4px; background: #c6ff00; border-radius: 50%; box-shadow: 0 0 10px #c6ff00; animation: floatFly 5s infinite alternate ease-in-out; }
+.firefly { position: absolute; width: 5px; height: 5px; background: #c6ff00; border-radius: 50%; box-shadow: 0 0 12px #c6ff00; animation: floatFly 5s infinite alternate ease-in-out; }
 .butterfly { position: absolute; font-size: 1.2rem; animation: floatFly 6s infinite alternate ease-in-out; }
 @keyframes floatFly { 0% { transform: translate(0, 0); opacity: 0.5; } 100% { transform: translate(50px, -50px); opacity: 1; } }
 @keyframes floatUpHeart { 0% { transform: translate(-50%, 0) scale(0.5); opacity: 1; } 100% { transform: translate(-50%, -50px) scale(1.5); opacity: 0; } }
+@keyframes splashFX { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
 
 /* Chat Modal */
-#chat-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 200; display: flex; flex-direction: column; justify-content: flex-end; }
-.chat-wrapper { background: #fff; height: 60dvh; border-radius: 30px 30px 0 0; display: flex; flex-direction: column; padding: 20px; animation: slideUp 0.3s ease; }
+#chat-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 200; display: flex; flex-direction: column; justify-content: flex-end; }
+.chat-wrapper { background: #fff; height: 60dvh; border-radius: 30px 30px 0 0; display: flex; flex-direction: column; padding: 25px; animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.chat-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 10px;}
-.chat-header h4 { color: var(--primary); font-weight: 900; }
-.btn-close { background: none; border: none; font-size: 2rem; color: #aaa; cursor: pointer; }
-.chat-logs { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-bottom: 10px; }
-.msg { max-width: 80%; padding: 12px 18px; border-radius: 20px; font-weight: 700; font-size: 0.95rem; line-height: 1.4; }
-.msg-twidy { background: #f0f4f1; color: var(--text-dark); align-self: flex-start; border-bottom-left-radius: 5px; }
+.chat-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 15px; }
+.chat-header h4 { color: var(--primary); font-size: 1.2rem; }
+.btn-close { background: #eee; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: #555;}
+.chat-logs { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-bottom: 15px; }
+.msg { max-width: 85%; padding: 15px; border-radius: 20px; font-weight: 700; font-size: 0.95rem; line-height: 1.4; }
+.msg-twidy { background: #f0f5f1; color: #333; align-self: flex-start; border-bottom-left-radius: 5px; }
 .msg-user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 5px; }
 .chat-input-row { display: flex; gap: 10px; margin-top: 10px; }
 .chat-input-row input { flex: 1; padding: 15px 20px; border-radius: 25px; border: 2px solid #eee; outline: none; font-size: 1rem; font-weight: 700; transition: border 0.3s; }
 .chat-input-row input:focus { border-color: var(--primary); }
-.btn-send { width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; border: none; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(92,138,99,0.3); }
+.btn-send { width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; border: none; font-size: 1.2rem; box-shadow: 0 5px 15px rgba(92,138,99,0.3); cursor: pointer;}
