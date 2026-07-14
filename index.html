@@ -3,33 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Twidy Cozy Garden</title>
+    <title>Twidy's Cozy Garden</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="ui-layer">
         <header class="top-hud">
-            <div class="pill">LV. 1 | <div class="exp-bar"><div id="exp-fill" style="width: 20%;"></div></div></div>
-            <div class="pill">🪙 50</div>
+            <div class="pill status-pill">
+                <span class="level">LV. <span id="val-level">1</span></span>
+                <div class="exp-bar"><div id="exp-fill"></div></div>
+            </div>
+            <div class="pill coin-pill">🪙 <span id="val-coin">50</span></div>
         </header>
+
         <nav class="floating-dock">
-            <button class="dock-btn" onclick="pokeTwidy()">👋</button>
-            <button class="dock-btn main-btn" onclick="openChat()">💬</button>
             <button class="dock-btn" onclick="feedTwidy()">🍖</button>
+            <button class="dock-btn main-btn" onclick="openChat()">💬</button>
+            <button class="dock-btn" onclick="playTwidy()">🎾</button>
         </nav>
     </div>
 
     <div id="world">
-        <div id="twidy-container">
-            <div id="thought-bubble" class="hidden">...</div>
+        <div id="sky-layer">
+            <div id="celestial-body"></div>
+            <div id="clouds-container"></div>
+        </div>
+
+        <div id="bg-scenery">
+            <div class="mountain m1"></div>
+            <div class="mountain m2"></div>
+        </div>
+
+        <div id="garden-ground">
+            <div class="stone-path"></div>
             
-            <div id="twidy-sprite">
-                <span class="image-fallback-text">Gambar Twidy Belum Ada</span>
+            <div class="zone pond" id="zone-pond">
+                <div class="water-ripple"></div>
+                <div class="lilypad"></div>
             </div>
+            
+            <div class="zone flower-bed" id="zone-flowers">
+                <span class="flower f1">🌸</span>
+                <span class="flower f2">🌷</span>
+                <span class="flower f3">🌼</span>
+            </div>
+            
+            <div class="zone bench" id="zone-bench">
+                <div class="wood-plank"></div>
+                <div class="wood-leg left"></div><div class="wood-leg right"></div>
+            </div>
+
+            <div class="tree-large" id="zone-tree">
+                <div class="trunk"></div>
+                <div class="leaves"></div>
+            </div>
+        </div>
+
+        <div id="twidy-container" style="transform: translate(50vw, 55vh);">
+            <div id="thought-bubble" class="hidden">...</div>
+            <div id="zzz-fx" class="hidden">Zzz...</div>
+            
+            <div id="twidy-sprite" class="sprite-idle" onclick="pokeTwidy()"></div>
             
             <div class="shadow-ground"></div>
         </div>
+
+        <div id="particle-layer"></div>
     </div>
 
     <div id="chat-modal" class="hidden">
