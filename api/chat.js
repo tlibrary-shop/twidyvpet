@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
     try {
         const userMessage = req.body.message;
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
 
         // System Prompt untuk membentuk kepribadian Twidy
         const systemPrompt = `
