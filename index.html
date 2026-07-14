@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Twidy Cozy Garden</title>
+    <title>Twidy's Cozy Garden</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,8 +11,11 @@
     <div id="ui-layer">
         <header class="top-hud">
             <div class="pill status-pill">
-                <span class="level">LV. <span id="val-level">1</span></span>
-                <div class="exp-bar"><div id="exp-fill"></div></div>
+                <div class="status-header">
+                    <span class="level">LV. <span id="val-level">1</span></span>
+                    <span class="exp-text"><span id="val-exp">0</span> / <span id="val-max-exp">100</span> XP</span>
+                </div>
+                <div class="exp-bar"><div id="exp-fill" style="width: 0%;"></div></div>
             </div>
             <div class="pill coin-pill">🪙 <span id="val-coin">50</span></div>
         </header>
@@ -20,18 +23,15 @@
         <nav class="floating-dock">
             <button class="dock-btn tooltip" onclick="triggerAction('feed')" data-title="Makan">🍖</button>
             <button class="dock-btn tooltip" onclick="triggerAction('bath')" data-title="Mandi">🧼</button>
-            
             <button class="dock-btn main-btn tooltip" onclick="openChat()" data-title="Ngobrol">💬</button>
-            
             <button class="dock-btn tooltip" onclick="triggerAction('play')" data-title="Main">🎾</button>
-            <button class="dock-btn tooltip" onclick="triggerAction('read')" data-title="Baca Buku">📚</button>
+            <button class="dock-btn tooltip" onclick="triggerAction('read')" data-title="Baca">📚</button>
         </nav>
     </div>
 
     <div id="world">
         <div id="sky-layer">
             <div id="celestial-body"></div>
-            <div id="clouds-container"></div>
         </div>
 
         <div id="bg-scenery">
@@ -53,7 +53,6 @@
             <div id="zzz-fx" class="hidden">Zzz...</div>
             
             <div id="twidy-sprite" class="sprite-idle" onclick="pokeTwidy()"></div>
-            
             <div class="shadow-ground"></div>
         </div>
 
