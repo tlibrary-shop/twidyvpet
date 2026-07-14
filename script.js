@@ -1,6 +1,6 @@
 /**
- * AUTONOMOUS SPRITE ENGINE
- * Menghubungkan taman CSS dengan Sprite Gambar Twidy
+ * AUTONOMOUS SPRITE ENGINE (PC & Mobile Friendly)
+ * UI tidak lagi menghilang otomatis.
  */
 
 const el = {
@@ -10,32 +10,28 @@ const el = {
     twidySprite: document.getElementById('twidy-sprite'),
     bubble: document.getElementById('thought-bubble'),
     zzz: document.getElementById('zzz-fx'),
-    particles: document.getElementById('particle-layer'),
-    ui: document.getElementById('ui-layer')
+    particles: document.getElementById('particle-layer')
 };
 
 const state = {
-    posX: 50, // vw
-    posY: 60, // vh
-    isUserActive: true,
-    idleTimeout: null,
-    facing: 'right'
+    posX: 50,
+    posY: 60,
+    facing: 'right',
+    isActionLocked: false // Mengunci aktivitas otonom saat pengguna menekan tombol
 };
 
-// Zona Lokasi di Taman
 const zones = [
     { name: 'center', x: 50, y: 65, action: 'idle' },
     { name: 'pond', x: 20, y: 70, action: 'sit' },
     { name: 'flowers', x: 80, y: 70, action: 'sit' },
     { name: 'bench', x: 75, y: 55, action: 'sit' },
-    { name: 'tree', x: 90, y: 60, action: 'sleep' }
+    { name: 'lamp', x: 90, y: 55, action: 'idle' }
 ];
 
 window.onload = () => {
     updateEnvironment();
     setInterval(updateEnvironment, 60000);
     startLifeEngine();
-    setupInteraction();
 };
 
 // --- ENVIRONMENT ---
@@ -75,20 +71,19 @@ function spawnParticles(type, count) {
 // --- LIFE ENGINE ---
 function startLifeEngine() {
     function loop() {
-        if (!state.isUserActive || Math.random() > 0.4) {
+        if (!state.isActionLocked && Math.random() > 0.4) {
             const hour = new Date().getHours();
             let possibleZones = [...zones];
             
-            // Perbesar kemungkinan tidur di malam hari
             if (hour >= 21 || hour < 6) {
-                possibleZones.push(zones.find(z => z.action === 'sleep'));
+                possibleZones.push({ name: 'sleep', x: 50, y: 60, action: 'sleep' });
             }
 
             const target = possibleZones[Math.floor(Math.random() * possibleZones.length)];
             executeActivity(target);
         }
         
-        if(Math.random() > 0.6) triggerRandomThought();
+        if(!state.isActionLocked && Math.random() > 0.6) triggerRandomThought();
         
         setTimeout(loop, Math.random() * 8000 + 7000);
     }
@@ -96,19 +91,16 @@ function startLifeEngine() {
 }
 
 function executeActivity(target) {
-    el.twidySprite.className = 'sprite-walk'; // Ganti kelas ke jalan
-    el.zzz.classList.add('hidden'); // Matikan zzz
+    el.twidySprite.className = 'sprite-walk'; 
+    el.zzz.classList.add('hidden'); 
     
     walkTo(target.x, target.y, () => {
-        // Setelah sampai, ganti animasi sesuai zona
         el.twidySprite.className = `sprite-${target.action}`;
         
         if(target.action === 'sleep') {
             el.zzz.classList.remove('hidden');
         } else if (target.action === 'sit') {
             if(Math.random() > 0.5) think("Tempat yang nyaman.");
-        } else {
-            if(Math.random() > 0.5) think("Taman ini tenang sekali.");
         }
     });
 }
@@ -132,43 +124,38 @@ function walkTo(targetX, targetY, callback) {
 
 function flipSprite(direction) {
     state.facing = direction;
-    // Balik sprite
     el.twidySprite.style.transform = direction === 'left' ? 'scaleX(-1)' : 'scaleX(1)';
-    // Jaga agar bubble tidak terbalik
     el.bubble.style.transform = direction === 'left' ? 'translateX(-50%) scaleX(-1)' : 'translateX(-50%) scaleX(1)';
     el.zzz.style.transform = direction === 'left' ? 'scaleX(-1)' : 'scaleX(1)';
 }
 
 // --- INTERACTION ---
-function setupInteraction() {
-    function resetIdle() {
-        state.isUserActive = true;
-        el.ui.style.opacity = '1';
-        clearTimeout(state.idleTimeout);
-        state.idleTimeout = setTimeout(() => {
-            state.isUserActive = false;
-            el.ui.style.opacity = '0';
-        }, 4000);
+// Drag functionality for character
+let startX = 0;
+el.twidyContainer.addEventListener('mousedown', e => startX = e.clientX);
+el.twidyContainer.addEventListener('mousemove', e => {
+    if (startX !== 0 && Math.abs(e.clientX - startX) > 20) {
+        flipSprite(e.clientX > startX ? 'right' : 'left');
+        el.twidySprite.className = 'sprite-walk';
     }
-    document.addEventListener('touchstart', resetIdle);
-    document.addEventListener('touchmove', resetIdle);
-    resetIdle();
-}
+});
+el.twidyContainer.addEventListener('mouseup', () => { startX = 0; el.twidySprite.className = 'sprite-idle'; });
+el.twidyContainer.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+el.twidyContainer.addEventListener('touchend', () => { startX = 0; el.twidySprite.className = 'sprite-idle'; });
 
 function pokeTwidy() {
-    el.twidySprite.className = 'sprite-idle'; // Bangun
+    unlockAction();
+    el.twidySprite.className = 'sprite-idle'; 
     el.zzz.classList.add('hidden');
     
     think("Hehe! 👋");
     
-    // Lompat kecil
     el.twidyContainer.style.transitionDuration = '0.2s';
     el.twidyContainer.style.transform = `translate(${state.posX}vw, ${state.posY - 5}vh) scaleY(0.9)`;
     setTimeout(() => {
         el.twidyContainer.style.transform = `translate(${state.posX}vw, ${state.posY}vh) scaleY(1)`;
     }, 200);
     
-    // Love Particle
     const heart = document.createElement('div');
     heart.innerText = '❤️';
     heart.style.position = 'absolute';
@@ -180,28 +167,46 @@ function pokeTwidy() {
     setTimeout(() => heart.remove(), 1000);
 }
 
-function feedTwidy() {
-    el.twidySprite.className = 'sprite-idle';
+// --- BUTTON ACTIONS ---
+function triggerAction(action) {
+    state.isActionLocked = true; // Jeda animasi otonom
     el.zzz.classList.add('hidden');
     
-    think("Nyam nyam! Enak! 🍲");
-    // Karena kita cuma pakai idle.png, kita mainkan CSS hopWalk sementara
-    el.twidySprite.className = 'sprite-walk'; 
-    setTimeout(() => el.twidySprite.className = 'sprite-idle', 1500);
+    if (action === 'feed') {
+        el.twidySprite.className = 'sprite-walk'; 
+        think("Nyam nyam! Sosisnya enak! 🌭");
+        setTimeout(() => el.twidySprite.className = 'sprite-idle', 1500);
+        
+    } else if (action === 'bath') {
+        el.twidySprite.className = 'sprite-idle';
+        think("Segar sekali! 🧼");
+        // Splash effect
+        const splash = document.createElement('div');
+        splash.style.position = 'absolute'; splash.style.width = '100px'; splash.style.height = '100px';
+        splash.style.background = 'radial-gradient(circle, rgba(135,206,235,0.8) 0%, transparent 70%)';
+        splash.style.animation = 'splashFX 0.5s ease-out forwards';
+        el.twidyContainer.appendChild(splash);
+        setTimeout(() => splash.remove(), 500);
+        
+    } else if (action === 'play') {
+        el.twidySprite.className = 'sprite-walk';
+        think("Yaaay main lempar tangkap! 🎾");
+        el.twidyContainer.style.transitionDuration = '0.3s';
+        el.twidyContainer.style.transform = `translate(${state.posX}vw, ${state.posY - 15}vh)`;
+        setTimeout(() => el.twidyContainer.style.transform = `translate(${state.posX}vw, ${state.posY}vh)`, 300);
+        setTimeout(() => el.twidySprite.className = 'sprite-idle', 1500);
+        
+    } else if (action === 'read') {
+        el.twidySprite.className = 'sprite-sit';
+        // Memberikan sentuhan easter egg dari proyek aslimu
+        const books = ["Lagi baca Diva The Series nih 📚", "Buku 'Manis di Mulut, Pahit di Tubuh' ini menarik juga...", "Wah, cerita Perpustakaan Keliling! 🚌"];
+        think(books[Math.floor(Math.random() * books.length)]);
+    }
+
+    setTimeout(unlockAction, 4000);
 }
 
-function playTwidy() {
-    el.twidySprite.className = 'sprite-walk';
-    el.zzz.classList.add('hidden');
-    
-    think("Yaaay main! 🎾");
-    // Lompat tinggi
-    el.twidyContainer.style.transitionDuration = '0.4s';
-    el.twidyContainer.style.transform = `translate(${state.posX}vw, ${state.posY - 15}vh)`;
-    setTimeout(() => el.twidyContainer.style.transform = `translate(${state.posX}vw, ${state.posY}vh)`, 400);
-    
-    setTimeout(() => el.twidySprite.className = 'sprite-idle', 1000);
-}
+function unlockAction() { state.isActionLocked = false; }
 
 // --- THOUGHT BUBBLE ---
 function think(text) {
@@ -240,9 +245,8 @@ function sendChat() {
     input.value = '';
     const typingId = appendLog("...", "twidy");
     
-    // Backend Vercel Fetch Placeholder
     setTimeout(() => {
-        document.getElementById(typingId).innerText = `(Terkoneksi ke Backend). Aku tangkap maksudmu: "${text}"`;
+        document.getElementById(typingId).innerText = `(Backend Placeholder): Aku tangkap maksudmu: "${text}"`;
     }, 1000);
 }
 
