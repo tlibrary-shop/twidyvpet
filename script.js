@@ -1,8 +1,3 @@
-/**
- * AUTONOMOUS SPRITE ENGINE (PC & Mobile Friendly)
- * UI tidak lagi menghilang otomatis.
- */
-
 const el = {
     sky: document.getElementById('sky-layer'),
     celestial: document.getElementById('celestial-body'),
@@ -14,44 +9,70 @@ const el = {
 };
 
 const state = {
+    level: 1,
+    exp: 0,
+    maxExp: 100,
+    coins: 50,
     posX: 50,
-    posY: 60,
+    posY: 55,
     facing: 'right',
-    isActionLocked: false // Mengunci aktivitas otonom saat pengguna menekan tombol
+    isActionLocked: false
 };
 
 const zones = [
-    { name: 'center', x: 50, y: 65, action: 'idle' },
-    { name: 'pond', x: 20, y: 70, action: 'sit' },
-    { name: 'flowers', x: 80, y: 70, action: 'sit' },
-    { name: 'bench', x: 75, y: 55, action: 'sit' },
-    { name: 'lamp', x: 90, y: 55, action: 'idle' }
+    { name: 'center', x: 50, y: 55, action: 'idle' },
+    { name: 'pond', x: 20, y: 65, action: 'sit' },
+    { name: 'flowers', x: 80, y: 60, action: 'sit' },
+    { name: 'bench', x: 75, y: 50, action: 'sit' },
+    { name: 'lamp', x: 90, y: 50, action: 'idle' }
 ];
 
 window.onload = () => {
     updateEnvironment();
     setInterval(updateEnvironment, 60000);
     startLifeEngine();
+    updateHUD();
 };
+
+// --- HUD & PROGRESSION ---
+function updateHUD() {
+    document.getElementById('val-level').innerText = state.level;
+    document.getElementById('val-exp').innerText = state.exp;
+    document.getElementById('val-max-exp').innerText = state.maxExp;
+    document.getElementById('val-coin').innerText = state.coins;
+    
+    const expPercent = (state.exp / state.maxExp) * 100;
+    document.getElementById('exp-fill').style.width = `${expPercent}%`;
+}
+
+function addExp(amount) {
+    state.exp += amount;
+    if (state.exp >= state.maxExp) {
+        state.level++;
+        state.exp -= state.maxExp;
+        state.maxExp = Math.floor(state.maxExp * 1.5); 
+        state.coins += 50; 
+        think("Hore! Aku naik level! 🎉");
+        
+        el.twidyContainer.style.transitionDuration = '0.3s';
+        el.twidyContainer.style.transform = `translate(${state.posX}vw, ${state.posY - 15}vh)`;
+        setTimeout(() => el.twidyContainer.style.transform = `translate(${state.posX}vw, ${state.posY}vh)`, 300);
+    }
+    updateHUD();
+}
 
 // --- ENVIRONMENT ---
 function updateEnvironment() {
     const hour = new Date().getHours();
     let timeClass = '';
-    
     el.particles.innerHTML = ''; 
     
     if (hour >= 6 && hour < 15) {
-        timeClass = 'time-morning';
-        el.celestial.className = 'is-sun';
-        spawnParticles('butterfly', 3);
+        timeClass = 'time-morning'; el.celestial.className = 'is-sun'; spawnParticles('butterfly', 3);
     } else if (hour >= 15 && hour < 18) {
-        timeClass = 'time-afternoon';
-        el.celestial.className = 'is-sun';
+        timeClass = 'time-afternoon'; el.celestial.className = 'is-sun';
     } else {
-        timeClass = 'time-night';
-        el.celestial.className = 'is-moon';
-        spawnParticles('firefly', 10);
+        timeClass = 'time-night'; el.celestial.className = 'is-moon'; spawnParticles('firefly', 10);
     }
     el.sky.className = timeClass;
 }
@@ -61,8 +82,7 @@ function spawnParticles(type, count) {
         const p = document.createElement('div');
         p.className = type;
         if(type === 'butterfly') p.innerText = Math.random() > 0.5 ? '🦋' : '🌸'; 
-        p.style.left = `${Math.random() * 100}vw`;
-        p.style.top = `${Math.random() * 80}vh`;
+        p.style.left = `${Math.random() * 100}vw`; p.style.top = `${Math.random() * 80}vh`;
         p.style.animationDelay = `${Math.random() * 5}s`;
         el.particles.appendChild(p);
     }
@@ -74,17 +94,10 @@ function startLifeEngine() {
         if (!state.isActionLocked && Math.random() > 0.4) {
             const hour = new Date().getHours();
             let possibleZones = [...zones];
-            
-            if (hour >= 21 || hour < 6) {
-                possibleZones.push({ name: 'sleep', x: 50, y: 60, action: 'sleep' });
-            }
-
-            const target = possibleZones[Math.floor(Math.random() * possibleZones.length)];
-            executeActivity(target);
+            if (hour >= 21 || hour < 6) possibleZones.push({ name: 'sleep', x: 50, y: 55, action: 'sleep' });
+            executeActivity(possibleZones[Math.floor(Math.random() * possibleZones.length)]);
         }
-        
         if(!state.isActionLocked && Math.random() > 0.6) triggerRandomThought();
-        
         setTimeout(loop, Math.random() * 8000 + 7000);
     }
     loop();
@@ -96,28 +109,20 @@ function executeActivity(target) {
     
     walkTo(target.x, target.y, () => {
         el.twidySprite.className = `sprite-${target.action}`;
-        
-        if(target.action === 'sleep') {
-            el.zzz.classList.remove('hidden');
-        } else if (target.action === 'sit') {
-            if(Math.random() > 0.5) think("Tempat yang nyaman.");
-        }
+        if(target.action === 'sleep') el.zzz.classList.remove('hidden');
+        else if (target.action === 'sit' && Math.random() > 0.5) think("Tempat yang nyaman.");
     });
 }
 
 function walkTo(targetX, targetY, callback) {
-    if (targetX !== state.posX) {
-        flipSprite(targetX > state.posX ? 'right' : 'left');
-    }
+    if (targetX !== state.posX) flipSprite(targetX > state.posX ? 'right' : 'left');
     
     const dist = Math.sqrt(Math.pow(targetX - state.posX, 2) + Math.pow(targetY - state.posY, 2));
     const duration = dist * 0.08; 
     
     el.twidyContainer.style.transitionDuration = `${duration}s`;
     el.twidyContainer.style.transform = `translate(${targetX}vw, ${targetY}vh)`;
-    
-    state.posX = targetX;
-    state.posY = targetY;
+    state.posX = targetX; state.posY = targetY;
     
     setTimeout(() => { if(callback) callback(); }, duration * 1000);
 }
@@ -130,13 +135,11 @@ function flipSprite(direction) {
 }
 
 // --- INTERACTION ---
-// Drag functionality for character
 let startX = 0;
 el.twidyContainer.addEventListener('mousedown', e => startX = e.clientX);
 el.twidyContainer.addEventListener('mousemove', e => {
     if (startX !== 0 && Math.abs(e.clientX - startX) > 20) {
-        flipSprite(e.clientX > startX ? 'right' : 'left');
-        el.twidySprite.className = 'sprite-walk';
+        flipSprite(e.clientX > startX ? 'right' : 'left'); el.twidySprite.className = 'sprite-walk';
     }
 });
 el.twidyContainer.addEventListener('mouseup', () => { startX = 0; el.twidySprite.className = 'sprite-idle'; });
@@ -144,78 +147,63 @@ el.twidyContainer.addEventListener('touchstart', e => startX = e.touches[0].clie
 el.twidyContainer.addEventListener('touchend', () => { startX = 0; el.twidySprite.className = 'sprite-idle'; });
 
 function pokeTwidy() {
-    unlockAction();
+    state.isActionLocked = false;
     el.twidySprite.className = 'sprite-idle'; 
     el.zzz.classList.add('hidden');
-    
     think("Hehe! 👋");
     
     el.twidyContainer.style.transitionDuration = '0.2s';
     el.twidyContainer.style.transform = `translate(${state.posX}vw, ${state.posY - 5}vh) scaleY(0.9)`;
-    setTimeout(() => {
-        el.twidyContainer.style.transform = `translate(${state.posX}vw, ${state.posY}vh) scaleY(1)`;
-    }, 200);
+    setTimeout(() => { el.twidyContainer.style.transform = `translate(${state.posX}vw, ${state.posY}vh) scaleY(1)`; }, 200);
     
     const heart = document.createElement('div');
-    heart.innerText = '❤️';
-    heart.style.position = 'absolute';
-    heart.style.left = '50%';
-    heart.style.top = '-20px';
-    heart.style.fontSize = '1.5rem';
-    heart.style.animation = 'floatUpHeart 1s forwards ease-out';
+    heart.innerText = '❤️'; heart.style.position = 'absolute'; heart.style.left = '50%'; heart.style.top = '-20px';
+    heart.style.fontSize = '1.5rem'; heart.style.animation = 'floatUpHeart 1s forwards ease-out';
     el.twidyContainer.appendChild(heart);
     setTimeout(() => heart.remove(), 1000);
+    addExp(5);
 }
 
-// --- BUTTON ACTIONS ---
 function triggerAction(action) {
-    state.isActionLocked = true; // Jeda animasi otonom
+    state.isActionLocked = true;
     el.zzz.classList.add('hidden');
     
     if (action === 'feed') {
         el.twidySprite.className = 'sprite-walk'; 
         think("Nyam nyam! Sosisnya enak! 🌭");
+        addExp(15);
         setTimeout(() => el.twidySprite.className = 'sprite-idle', 1500);
-        
     } else if (action === 'bath') {
         el.twidySprite.className = 'sprite-idle';
         think("Segar sekali! 🧼");
-        // Splash effect
+        addExp(10);
         const splash = document.createElement('div');
         splash.style.position = 'absolute'; splash.style.width = '100px'; splash.style.height = '100px';
         splash.style.background = 'radial-gradient(circle, rgba(135,206,235,0.8) 0%, transparent 70%)';
         splash.style.animation = 'splashFX 0.5s ease-out forwards';
         el.twidyContainer.appendChild(splash);
         setTimeout(() => splash.remove(), 500);
-        
     } else if (action === 'play') {
         el.twidySprite.className = 'sprite-walk';
         think("Yaaay main lempar tangkap! 🎾");
+        addExp(20);
         el.twidyContainer.style.transitionDuration = '0.3s';
         el.twidyContainer.style.transform = `translate(${state.posX}vw, ${state.posY - 15}vh)`;
         setTimeout(() => el.twidyContainer.style.transform = `translate(${state.posX}vw, ${state.posY}vh)`, 300);
         setTimeout(() => el.twidySprite.className = 'sprite-idle', 1500);
-        
     } else if (action === 'read') {
         el.twidySprite.className = 'sprite-sit';
-        // Memberikan sentuhan easter egg dari proyek aslimu
-        const books = ["Lagi baca Diva The Series nih 📚", "Buku 'Manis di Mulut, Pahit di Tubuh' ini menarik juga...", "Wah, cerita Perpustakaan Keliling! 🚌"];
+        const books = ["Lagi baca Diva The Series nih 📚", "Buku 'Manis di Mulut, Pahit di Tubuh' ini menarik...", "Wah, cerita Perpustakaan Keliling! 🚌"];
         think(books[Math.floor(Math.random() * books.length)]);
+        addExp(15);
     }
-
-    setTimeout(unlockAction, 4000);
+    setTimeout(() => { state.isActionLocked = false; }, 4000);
 }
 
-function unlockAction() { state.isActionLocked = false; }
-
-// --- THOUGHT BUBBLE ---
 function think(text) {
-    el.bubble.innerText = text;
-    el.bubble.classList.remove('hidden');
+    el.bubble.innerText = text; el.bubble.classList.remove('hidden');
     if(window.bubbleTimer) clearTimeout(window.bubbleTimer);
-    window.bubbleTimer = setTimeout(() => {
-        el.bubble.classList.add('hidden');
-    }, 4000);
+    window.bubbleTimer = setTimeout(() => { el.bubble.classList.add('hidden'); }, 4000);
 }
 
 function triggerRandomThought() {
@@ -227,16 +215,14 @@ function triggerRandomThought() {
     think(thoughts[Math.floor(Math.random() * thoughts.length)]);
 }
 
-// --- CHAT MODAL ---
+// --- CHAT SYSTEM (Terhubung ke API Backend Vercel) ---
 function openChat() {
     document.getElementById('chat-modal').classList.remove('hidden');
-    if(!document.getElementById('chat-logs').innerHTML) {
-        appendLog("Halo! Mau ngobrolin apa hari ini?", "twidy");
-    }
+    if(!document.getElementById('chat-logs').innerHTML) appendLog("Halo! Mau ngobrolin apa hari ini?", "twidy");
 }
 function closeChat() { document.getElementById('chat-modal').classList.add('hidden'); }
 
-function sendChat() {
+async function sendChat() {
     const input = document.getElementById('chat-input');
     const text = input.value.trim();
     if(!text) return;
@@ -245,19 +231,30 @@ function sendChat() {
     input.value = '';
     const typingId = appendLog("...", "twidy");
     
-    setTimeout(() => {
-        document.getElementById(typingId).innerText = `(Backend Placeholder): Aku tangkap maksudmu: "${text}"`;
-    }, 1000);
+    try {
+        // Melakukan fetch ke backend Vercel milikmu
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text })
+        });
+        
+        if (!response.ok) throw new Error("Network Error");
+        const data = await response.json();
+        
+        document.getElementById(typingId).innerText = data.reply;
+        addExp(10); // Hadiah EXP ngobrol
+    } catch(err) {
+        console.error(err);
+        document.getElementById(typingId).innerText = "Maaf, koneksiku ke server terputus... 😿";
+    }
 }
 
 function appendLog(text, sender) {
     const logs = document.getElementById('chat-logs');
     const id = `msg-${Date.now()}`;
     const div = document.createElement('div');
-    div.id = id;
-    div.className = `msg msg-${sender}`;
-    div.innerText = text;
-    logs.appendChild(div);
-    logs.scrollTop = logs.scrollHeight;
+    div.id = id; div.className = `msg msg-${sender}`; div.innerText = text;
+    logs.appendChild(div); logs.scrollTop = logs.scrollHeight;
     return id;
 }
